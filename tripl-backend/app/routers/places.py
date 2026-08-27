@@ -11,7 +11,7 @@ from app.services.geocoder import geocode_city
 router = APIRouter(prefix="/api/places", tags=["places"])
 
 
-@router.get("/nearby", response_model=List[PlaceWithDistance])
+@router.get("/nearby")
 async def get_nearby_places(
     city: Optional[str] = Query(None, description="City name"),
     latitude: Optional[float] = Query(None, ge=-90, le=90),
@@ -94,7 +94,7 @@ async def get_nearby_places(
         from app.services.osm_places import fetch_real_places
         live_places = await asyncio.wait_for(
             fetch_real_places(city, origin_lat, origin_lon, radius),
-            timeout=12.0,
+            timeout=25.0,
         )
     except Exception:
         pass
@@ -102,7 +102,8 @@ async def get_nearby_places(
     if live_places:
         result = []
         for place in live_places:
-            category_obj = categories.get(place.pop("category_name"))
+            cat_name = place.pop("category_name", None)
+            category_obj = categories.get(cat_name) if cat_name else None
             if category and (not category_obj or category.casefold() not in category_obj.name.casefold()):
                 continue
             place["id"] = -(len(result) + 1)
@@ -110,7 +111,7 @@ async def get_nearby_places(
             place["image_url"] = None
             place["category"] = (
                 {"id": category_obj.id, "name": category_obj.name, "icon": category_obj.icon, "color": category_obj.color}
-                if category_obj else None
+                if category_obj else {"id": None, "name": cat_name or "Heritage", "icon": "🏛️", "color": "#C2410C"}
             )
             result.append(place)
         return result

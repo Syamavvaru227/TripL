@@ -37,7 +37,7 @@ async def generate_trail_endpoint(req: TrailRequest, db: Session = Depends(get_d
     live_places = []
     try:
         import asyncio
-        live_places = await asyncio.wait_for(fetch_real_places(req.city, origin_lat, origin_lon, 30), timeout=8.0)
+        live_places = await asyncio.wait_for(fetch_real_places(req.city, origin_lat, origin_lon, 30), timeout=25.0)
     except Exception:
         pass
     if live_places:

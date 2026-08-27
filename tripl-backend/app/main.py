@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import os
 from dotenv import load_dotenv
 
@@ -40,11 +42,24 @@ def startup():
     initialize_database()
 
 
-@app.get("/")
-def root():
-    return {"message": "TripL API is running 🗺️", "version": "1.0.0", "docs": "/docs"}
-
-
-@app.get("/health")
+@app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+# ─── Serve React frontend in production ───────────────────────────────
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
+
+if os.path.isdir(STATIC_DIR):
+    # Serve built React assets (JS, CSS, images, etc.)
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve React SPA — any non-API route returns index.html."""
+        # If the file exists on disk, serve it (favicons, manifest, etc.)
+        file_path = os.path.join(STATIC_DIR, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # Otherwise serve index.html for client-side routing
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))

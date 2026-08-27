@@ -5,9 +5,14 @@ import { generateTrail } from "../api/trail"
 import useAppStore from "../store/useAppStore"
 import { showToast } from "../components/ui/Toast"
 import LoadingMandala from "../components/ui/LoadingMandala"
+import { MapPin, Search } from "lucide-react"
 import { clsx } from "clsx"
 
-const CITIES = ["Visakhapatnam","Hyderabad","Goa","Jaipur","Mumbai","Delhi","Bangalore","Kolkata","Udaipur","Pondicherry"]
+const SUGGESTED_CITIES = [
+  "Visakhapatnam","Hyderabad","Goa","Jaipur","Mumbai","Delhi",
+  "Bangalore","Kolkata","Udaipur","Pondicherry","Guntur","Vijayawada",
+  "Tirupati","Varanasi","Agra","Shimla","Chennai","Chandigarh","Patna","Bhubaneswar",
+]
 const EXPLORE_MODES = [
   { id: "highlights", emoji: "⚡", label: "Quick Highlights", desc: "Best spots in minimal time" },
   { id: "relaxed", emoji: "🌅", label: "Relaxed Exploration", desc: "Comfortable pace, more breaks" },
@@ -32,8 +37,10 @@ export default function Planner() {
   const { setTrailResult, setTrailLoading } = useAppStore()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [cityInput, setCityInput] = useState(params.get("city") || "")
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [form, setForm] = useState({
-    city: params.get("city") || "Visakhapatnam",
+    city: params.get("city") || "",
     mode: "relaxed",
     budget: 1000,
     hours: 6,
@@ -42,16 +49,33 @@ export default function Planner() {
     startTime: "09:00",
   })
 
+  const filteredSuggestions = SUGGESTED_CITIES.filter(c =>
+    c.toLowerCase().includes(cityInput.toLowerCase()) && c !== cityInput
+  ).slice(0, 8)
+
+  const selectCity = (city) => {
+    setCityInput(city)
+    setForm(f => ({ ...f, city }))
+    setShowSuggestions(false)
+  }
+
+  const handleCityInputChange = (val) => {
+    setCityInput(val)
+    setForm(f => ({ ...f, city: val }))
+    setShowSuggestions(val.length > 0)
+  }
+
   const toggleInterest = (id) => {
     setForm(f => ({ ...f, interests: f.interests.includes(id) ? f.interests.filter(x => x !== id) : [...f.interests, id] }))
   }
 
   const handleGenerate = async () => {
+    if (!form.city.trim()) { showToast("Please enter a city name", "error"); return }
     if (form.interests.length === 0) { showToast("Please select at least one interest", "error"); return }
     setLoading(true)
     setTrailLoading(true)
     try {
-      const res = await generateTrail({ city: form.city, available_hours: form.hours, budget_inr: form.budget, interests: form.interests, transport_mode: form.transport, start_time: form.startTime })
+      const res = await generateTrail({ city: form.city.trim(), available_hours: form.hours, budget_inr: form.budget, interests: form.interests, transport_mode: form.transport, start_time: form.startTime })
       setTrailResult(res.data)
       navigate("/itinerary")
     } catch (e) {
@@ -62,14 +86,10 @@ export default function Planner() {
     }
   }
 
-  const Chip = ({ active, onClick, children, className="" }) => (
-    <button onClick={onClick} className={clsx("chip transition-all duration-150", active ? "chip-active" : "chip-inactive", className)}>{children}</button>
-  )
-
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-ivory">
       <LoadingMandala size={100} text="Our AI is crafting your perfect journey..." />
-      <p className="text-muted text-xs mt-4 max-w-xs text-center">Analysing {form.interests.length} interests, ₹{form.budget} budget, {form.hours}h available time...</p>
+      <p className="text-muted text-xs mt-4 max-w-xs text-center">Analysing {form.interests.length} interests, ₹{form.budget} budget, {form.hours}h available time in {form.city}...</p>
     </div>
   )
 
@@ -103,11 +123,41 @@ export default function Planner() {
           <AnimatePresence mode="wait">
             {step === 0 && (
               <motion.div key="step0" className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-                <div>
-                  <label className="block text-sm font-semibold text-charcoal mb-3">📍 Which city?</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {CITIES.map(c => <Chip key={c} active={form.city === c} onClick={() => setForm(f => ({ ...f, city: c }))}>{c}</Chip>)}
+                <div className="relative">
+                  <label className="block text-sm font-semibold text-charcoal mb-3">📍 Which city do you want to explore?</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <input
+                      type="text"
+                      value={cityInput}
+                      onChange={e => handleCityInputChange(e.target.value)}
+                      onFocus={() => cityInput && setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      placeholder="Type any Indian city name..."
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-white text-charcoal font-medium focus:border-saffron focus:ring-2 focus:ring-saffron/20 outline-none transition-all"
+                    />
+                    {cityInput && (
+                      <button onClick={() => { setCityInput(""); setForm(f => ({ ...f, city: "" })) }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-charcoal text-lg">×</button>
+                    )}
                   </div>
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white rounded-xl border border-border shadow-lg max-h-48 overflow-y-auto">
+                      {filteredSuggestions.map(c => (
+                        <button key={c} onClick={() => selectCity(c)} className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-saffron/5 transition-colors">
+                          <MapPin className="w-4 h-4 text-saffron" />
+                          <span className="text-sm font-medium text-charcoal">{c}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {form.city && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="px-3 py-1 bg-saffron/10 text-saffron rounded-full text-sm font-semibold flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" /> {form.city}
+                      </span>
+                      <span className="text-xs text-muted">works for any Indian city</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-charcoal mb-3">⏰ Start time?</label>
@@ -152,9 +202,10 @@ export default function Planner() {
                   <p className="text-muted text-xs mb-4">How long do you have today?</p>
                   <div className="grid grid-cols-4 gap-3">
                     {TIMES.map(t => (
-                      <Chip key={t.val} active={form.hours === t.val} onClick={() => setForm(f => ({ ...f, hours: t.val }))}>
+                      <button key={t.val} onClick={() => setForm(f => ({ ...f, hours: t.val }))}
+                        className={clsx("px-4 py-2 rounded-xl border text-sm font-medium transition-all", form.hours === t.val ? "border-saffron bg-saffron text-white" : "border-border text-charcoal hover:border-saffron/40")}>
                         {t.label}
-                      </Chip>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -212,7 +263,10 @@ export default function Planner() {
           <div className="flex gap-3 mt-8">
             {step > 0 && <button onClick={() => setStep(s => s - 1)} className="btn-secondary flex-1">← Back</button>}
             {step < STEPS.length - 1 ? (
-              <button onClick={() => setStep(s => s + 1)} className="btn-primary flex-1">Next →</button>
+              <button onClick={() => {
+                if (step === 0 && !form.city.trim()) { showToast("Please enter a city name", "error"); return }
+                setStep(s => s + 1)
+              }} className="btn-primary flex-1">Next →</button>
             ) : (
               <button onClick={handleGenerate} className="btn-primary flex-1 text-base py-4">✨ Create My Journey</button>
             )}

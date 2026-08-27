@@ -42,21 +42,22 @@ function MapUpdater({ center, zoom }) {
 export default function MapView({ center, places, onPlaceClick }) {
   const navigate = useNavigate()
   const { hoveredPlaceId } = useAppStore()
+  const validCenter = center && isFinite(center[0]) && isFinite(center[1]) && center[0] !== 0 ? center : [16.3067, 80.4365]
 
   return (
     <div className="w-full h-full rounded-xl overflow-hidden">
-      <MapContainer center={center} zoom={13} style={{ width: "100%", height: "100%" }} zoomControl={false}>
+      <MapContainer center={validCenter} zoom={13} style={{ width: "100%", height: "100%" }} zoomControl={false}>
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MapUpdater center={center} zoom={13} />
+        <MapUpdater center={validCenter} zoom={13} />
         {/* User location */}
-        <Marker position={center} icon={userIcon}>
+        <Marker position={validCenter} icon={userIcon}>
           <Popup><div className="p-2 text-sm font-medium text-charcoal">📍 Your Location</div></Popup>
         </Marker>
         {/* 30km radius circle */}
-        <Circle center={center} radius={30000} pathOptions={{ color: "#E8621A", fillColor: "#E8621A", fillOpacity: 0.03, weight: 1, dashArray: "6 6" }} />
+        <Circle center={validCenter} radius={30000} pathOptions={{ color: "#E8621A", fillColor: "#E8621A", fillOpacity: 0.03, weight: 1, dashArray: "6 6" }} />
         {/* Place markers */}
-        {places.map((place) => {
-          const catKey = place.category?.name?.toLowerCase() || "heritage"
+        {places.filter(p => p.latitude && p.longitude && isFinite(p.latitude) && isFinite(p.longitude) && p.latitude > -90 && p.latitude < 90 && p.longitude > -180 && p.longitude < 180).map((place) => {
+          const catKey = (place.category?.name || place.category_name || "heritage").toLowerCase()
           const color = CAT_COLORS[catKey] || "#E8621A"
           const emoji = CAT_EMOJI[catKey] || "📍"
           const isHovered = hoveredPlaceId === place.id
