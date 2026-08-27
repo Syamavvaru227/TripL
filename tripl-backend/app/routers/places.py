@@ -6,7 +6,7 @@ from app.database import get_db
 from app.models import Place, Category
 from app.schemas import PlaceWithDistance
 from app.services.geo_utils import haversine_km
-from app.services.geocoder import geocode_city
+from app.services.geocoder import geocode_city, reverse_geocode
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
@@ -33,7 +33,13 @@ async def get_nearby_places(
     # 1. Resolve coordinates
     if latitude is not None:
         coords = (latitude, longitude)
-        city = city or "Your location"
+        # Reverse-geocode to get the actual city name (not "Your location")
+        if not city or city == "Your location":
+            resolved = await reverse_geocode(latitude, longitude)
+            if resolved:
+                city = resolved
+            else:
+                city = "Your location"
     elif not city:
         raise HTTPException(status_code=422, detail="Enter a city or use your live location.")
     else:
