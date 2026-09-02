@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserOut, SendOtpRequest, VerifyOtpRequest, PhoneLoginRequest
+from app.schemas import AuthResponse, LoginRequest, RegisterRequest, UserOut, SendOtpRequest, VerifyOtpRequest, PhoneLoginRequest, PhoneRegisterRequest, ForgotPasswordRequest, CheckPhoneRequest
 from app.services.auth import create_access_token, decode_access_token, hash_password, verify_password
 from app.services.email import send_welcome_email
 from app.services.otp import generate_otp, verify_otp
@@ -53,6 +53,14 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     return _auth_response(user)
 
 
+@router.post("/check-phone")
+def check_phone(payload: CheckPhoneRequest, db: Session = Depends(get_db)):
+    if not verify_otp(payload.phone, payload.otp):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP.")
+    user = db.query(User).filter(User.phone == payload.phone).first()
+    return {"exists": user is not None, "phone": payload.phone}
+
+
 @router.post("/send-otp")
 def send_otp(payload: SendOtpRequest):
     otp = generate_otp(payload.phone)
@@ -64,31 +72,43 @@ def send_otp(payload: SendOtpRequest):
 
 
 @router.post("/register-phone", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-def register_phone(payload: VerifyOtpRequest, db: Session = Depends(get_db)):
+def register_phone(payload: PhoneRegisterRequest, db: Session = Depends(get_db)):
     if not verify_otp(payload.phone, payload.otp):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP.")
     if db.query(User.id).filter(User.phone == payload.phone).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An account with this phone number already exists.")
+    if db.query(User.id).filter(User.email == payload.email).first():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="An account with this email already exists.")
     phone_user = User(
         full_name=payload.full_name.strip(),
-        email=f"{payload.phone}@tripl.phone",
+        email=payload.email.strip().casefold(),
         phone=payload.phone,
-        password_hash=hash_password(payload.phone),
+        password_hash=hash_password(payload.password),
     )
     db.add(phone_user)
     db.commit()
     db.refresh(phone_user)
-    return _auth_response(phone_user)
+    return _auth_response(phone_user, welcome_email_sent=send_welcome_email(phone_user.email, phone_user.full_name))
 
 
 @router.post("/login-phone", response_model=AuthResponse)
 def login_phone(payload: PhoneLoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.phone == payload.phone).first()
+    if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect phone number or password.")
+    return _auth_response(user)
+
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     if not verify_otp(payload.phone, payload.otp):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP.")
     user = db.query(User).filter(User.phone == payload.phone).first()
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account not found. Please register first.")
-    return _auth_response(user)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Account not found.")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()
+    return {"message": "Password reset successful. You can now login with your new password."}
 
 
 @router.get("/me", response_model=UserOut)

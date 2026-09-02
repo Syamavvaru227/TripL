@@ -60,9 +60,36 @@ class VerifyOtpRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=100)
 
 
-class PhoneLoginRequest(BaseModel):
+class PhoneRegisterRequest(BaseModel):
     phone: str
     otp: str = Field(min_length=6, max_length=6)
+    full_name: str = Field(min_length=2, max_length=100)
+    email: str = Field(max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        normalized = value.strip().casefold()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", normalized):
+            raise ValueError("Enter a valid email address.")
+        return normalized
+
+
+class PhoneLoginRequest(BaseModel):
+    phone: str
+    password: str = Field(min_length=1, max_length=128)
+
+
+class CheckPhoneRequest(BaseModel):
+    phone: str
+    otp: str = Field(min_length=6, max_length=6)
+
+
+class ForgotPasswordRequest(BaseModel):
+    phone: str
+    otp: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class AuthResponse(BaseModel):
