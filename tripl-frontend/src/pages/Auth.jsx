@@ -29,6 +29,7 @@ export default function Auth() {
   const [otpLoading, setOtpLoading] = useState(false)
   const [otpTimer, setOtpTimer] = useState(0)
   const [otpPhone, setOtpPhone] = useState("")
+  const [debugOtp, setDebugOtp] = useState("")
   const [userExists, setUserExists] = useState(false)
   const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "", full_name: "", email: "", password: "" })
   const setPhone = (k) => (e) => setPhoneForm(f => ({ ...f, [k]: e.target.value }))
@@ -64,7 +65,9 @@ export default function Auth() {
   const handleSendOtp = async (e) => {
     e.preventDefault(); setOtpLoading(true)
     try {
-      await sendOtp(phoneForm.phone); setOtpPhone(phoneForm.phone); setOtpStep(1); startOtpTimer()
+      const res = await sendOtp(phoneForm.phone)
+      setOtpPhone(phoneForm.phone); setOtpStep(1); startOtpTimer()
+      setDebugOtp(res.data.otp_debug || "")
       showToast("OTP sent! Check your phone 📱", "success")
     } catch (e) { showToast(e.response?.data?.detail || "Failed to send OTP.", "error") }
     finally { setOtpLoading(false) }
@@ -110,7 +113,9 @@ export default function Auth() {
   const handleForgotSendOtp = async (e) => {
     e.preventDefault(); setOtpLoading(true)
     try {
-      await sendOtp(phoneForm.phone); setOtpPhone(phoneForm.phone); setOtpStep(1); startOtpTimer()
+      const res = await sendOtp(phoneForm.phone)
+      setOtpPhone(phoneForm.phone); setOtpStep(1); startOtpTimer()
+      setDebugOtp(res.data.otp_debug || "")
       showToast("OTP sent! Check your phone 📱", "success")
     } catch (e) { showToast(e.response?.data?.detail || "Failed to send OTP.", "error") }
     finally { setOtpLoading(false) }
@@ -295,6 +300,13 @@ export default function Auth() {
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                   <div className="text-center"><div className="text-4xl mb-2">📱</div>
                     <p className="text-sm text-muted">OTP sent to <span className="font-semibold text-charcoal">{otpPhone}</span></p></div>
+                  {debugOtp && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                      <p className="text-[11px] text-amber-600 font-medium">🔑 Demo OTP</p>
+                      <p className="text-2xl font-mono font-bold text-amber-700 tracking-[0.3em] mt-1">{debugOtp}</p>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(debugOtp)} className="text-[11px] text-amber-500 hover:text-amber-700 mt-1">📋 Tap to copy</button>
+                    </div>
+                  )}
                   <OtpInput autoFocus />
                   <button type="submit" disabled={otpLoading} className="btn-primary w-full justify-center py-3.5 text-base">
                     {otpLoading ? <Loader2 size={18} className="animate-spin" /> : "Verify OTP →"}
@@ -372,6 +384,13 @@ export default function Auth() {
                 <form onSubmit={handleForgotVerifyOtp} className="space-y-4">
                   <div className="text-center"><div className="text-4xl mb-2">📱</div>
                     <p className="text-sm text-muted">OTP sent to <span className="font-semibold text-charcoal">{otpPhone}</span></p></div>
+                  {debugOtp && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                      <p className="text-[11px] text-amber-600 font-medium">🔑 Demo OTP</p>
+                      <p className="text-2xl font-mono font-bold text-amber-700 tracking-[0.3em] mt-1">{debugOtp}</p>
+                      <button type="button" onClick={() => navigator.clipboard.writeText(debugOtp)} className="text-[11px] text-amber-500 hover:text-amber-700 mt-1">📋 Tap to copy</button>
+                    </div>
+                  )}
                   <OtpInput autoFocus />
                   <button type="submit" disabled={otpLoading} className="btn-primary w-full justify-center py-3.5 text-base">
                     {otpLoading ? <Loader2 size={18} className="animate-spin" /> : "Verify OTP →"}</button>
