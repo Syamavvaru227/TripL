@@ -111,7 +111,7 @@ export default function Itinerary() {
                     <span className="text-xl">{emoji}</span>
                   </div>
                 </div>
-                <div className="flex-1 card p-4 hover:shadow-card-hover transition-all cursor-pointer" onClick={() => navigate(`/place/${stop.place.id}`)}>
+                <div className="flex-1 card p-4 hover:shadow-card-hover transition-all cursor-pointer" onClick={() => navigate(`/place/${stop.place.id}?name=${encodeURIComponent(stop.place.name)}`, { state: { place: stop.place } })}>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
                       <div className="text-xs text-muted font-medium mb-0.5">Stop {stop.order}</div>

@@ -43,6 +43,14 @@ export default function PlaceDetail() {
     // If negative ID with name query param, construct a basic place object
     const nameParam = new URLSearchParams(location.search).get("name")
     if (parseInt(id) < 0 && nameParam) {
+      const timings = {
+        Temple: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning (6–8 AM)", visit_tips: "Morning puja is busiest. Visit early." },
+        Heritage: { opening_time: "09:00 AM", closing_time: "05:30 PM", crowded_peak: "11:00 AM – 2:00 PM", crowded_level: "Medium", best_time: "Morning (9–10:30 AM)", visit_tips: "Closed on national holidays." },
+        Religious: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning or late evening", visit_tips: "Festivals can make it extremely crowded." },
+        Beach: { opening_time: "06:00 AM", closing_time: "Sunset", crowded_peak: "4:00 PM – 7:00 PM", crowded_level: "Medium", best_time: "Early morning or sunset", visit_tips: "Weekends are very crowded." },
+        Nature: { opening_time: "06:00 AM", closing_time: "06:00 PM", crowded_peak: "10:00 AM – 4:00 PM", crowded_level: "Low", best_time: "Early morning", visit_tips: "Carry water and sunscreen." },
+      }
+      const defaultTimings = timings["Heritage"]
       setPlace({
         id: parseInt(id),
         name: nameParam,
@@ -53,8 +61,7 @@ export default function PlaceDetail() {
         rating: 4.0,
         avg_visit_duration: 60,
         entry_fee: 0,
-        opening_time: null,
-        closing_time: null,
+        ...defaultTimings,
         image_url: null,
         category: { name: "Heritage", icon: "🏛️", color: "#C2410C" },
       })
