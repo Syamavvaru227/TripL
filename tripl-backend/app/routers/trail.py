@@ -73,7 +73,7 @@ async def generate_trail_endpoint(req: TrailRequest, db: Session = Depends(get_d
     transport_modes_db = db.query(TransportMode).filter(TransportMode.is_active == True).all()
 
     # 4. Run trail generator
-    result = generate_trail(
+    result = await generate_trail(
         places=all_places,
         categories=cat_map,
         transport_modes_db=transport_modes_db,

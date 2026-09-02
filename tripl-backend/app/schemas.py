@@ -36,9 +36,33 @@ class UserOut(BaseModel):
     id: int
     full_name: str
     email: str
+    phone: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class SendOtpRequest(BaseModel):
+    phone: str = Field(min_length=10, max_length=15)
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, value: str) -> str:
+        cleaned = re.sub(r"[^\d+]", "", value.strip())
+        if len(cleaned) < 10:
+            raise ValueError("Enter a valid phone number.")
+        return cleaned
+
+
+class VerifyOtpRequest(BaseModel):
+    phone: str
+    otp: str = Field(min_length=6, max_length=6)
+    full_name: str = Field(min_length=2, max_length=100)
+
+
+class PhoneLoginRequest(BaseModel):
+    phone: str
+    otp: str = Field(min_length=6, max_length=6)
 
 
 class AuthResponse(BaseModel):

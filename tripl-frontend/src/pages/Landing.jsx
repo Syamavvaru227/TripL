@@ -1,6 +1,7 @@
 ﻿import { motion } from "framer-motion"
 import HeroSection from "../components/landing/HeroSection"
 import FeaturesSection from "../components/landing/FeaturesSection"
+import FeaturedPlaces from "../components/landing/FeaturedPlaces"
 import CitiesCarousel from "../components/landing/CitiesCarousel"
 import HowItWorks from "../components/landing/HowItWorks"
 import MandalaDivider from "../components/ui/MandalaDivider"
@@ -12,6 +13,7 @@ export default function Landing() {
     <div>
       <HeroSection />
       <FeaturesSection />
+      <FeaturedPlaces />
       <HowItWorks />
       <CitiesCarousel />
       <MandalaDivider text="Explore India" />
@@ -34,7 +36,7 @@ export default function Landing() {
           <h2 className="font-display font-bold text-4xl sm:text-5xl mb-4">Explore India.<br />Understand India.<br /><span className="text-saffron">Experience India.</span></h2>
           <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto">Don't just visit. Discover the stories, flavours, and soul behind every destination.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button onClick={() => navigate("/explore?city=Visakhapatnam")} className="btn-primary">Start Exploring</button>
+            <button onClick={() => navigate("/explore")} className="btn-primary">Start Exploring</button>
             <button onClick={() => navigate("/plan")} className="btn-secondary border-white/30 text-white hover:bg-white hover:text-indigo">Plan My Journey</button>
           </div>
         </div>

@@ -1,9 +1,10 @@
 ﻿import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, Bookmark, BookmarkCheck, MapPin, Clock, Star, DollarSign, Share2 } from "lucide-react"
 import { getPlaceById } from "../api/places"
 import TransportComparison from "../components/place/TransportComparison"
+import RideBooking from "../components/place/RideBooking"
 import KnowIndiaTab from "../components/place/KnowIndiaTab"
 import LocalExperiences from "../components/place/LocalExperiences"
 import LoadingMandala from "../components/ui/LoadingMandala"
@@ -13,7 +14,7 @@ import { showToast } from "../components/ui/Toast"
 
 const CITY_COORDS = { Visakhapatnam: [17.6868, 83.2185], Hyderabad: [17.3850, 78.4867], Goa: [15.2993, 74.1240], Jaipur: [26.9124, 75.7873] }
 const PLACEHOLDER_GRADIENTS = ["from-peacock to-indigo", "from-saffron to-terracotta", "from-emerald to-peacock", "from-terracotta to-saffron", "from-indigo to-peacock"]
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️",newspots: "🛍️" }
 const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron", cultural: "peacock", viewpoint: "indigo", family: "emerald", shopping: "terracotta" }
 
 const TABS = [
@@ -26,25 +27,65 @@ const TABS = [
 export default function PlaceDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [place, setPlace] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("overview")
   const { isSaved, toggleSaved } = useAppStore()
 
   useEffect(() => {
+    // If place data was passed via state (real-time places), use it directly
+    if (location.state?.place) {
+      setPlace(location.state.place)
+      setLoading(false)
+      return
+    }
+    // If negative ID with name query param, construct a basic place object
+    const nameParam = new URLSearchParams(location.search).get("name")
+    if (parseInt(id) < 0 && nameParam) {
+      setPlace({
+        id: parseInt(id),
+        name: nameParam,
+        description: "",
+        city: "",
+        latitude: 0,
+        longitude: 0,
+        rating: 4.0,
+        avg_visit_duration: 60,
+        entry_fee: 0,
+        opening_time: null,
+        closing_time: null,
+        image_url: null,
+        category: { name: "Heritage", icon: "🏛️", color: "#C2410C" },
+      })
+      setLoading(false)
+      return
+    }
     setLoading(true)
     getPlaceById(id)
       .then(r => setPlace(r.data))
       .catch(() => setPlace(null))
       .finally(() => setLoading(false))
-  }, [id])
+  }, [id, location.state, location.search])
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingMandala text="Loading destination..." /></div>
   if (!place) return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="text-6xl">🗺️</p>
-      <h2 className="font-display font-bold text-2xl text-charcoal">Place not found</h2>
-      <button onClick={() => navigate(-1)} className="btn-primary">Go Back</button>
+    <div className="min-h-screen bg-ivory">
+      <div className="sticky top-0 z-50 bg-white border-b border-border px-4 py-3 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-sand transition-colors">
+          <ArrowLeft size={20} className="text-charcoal" />
+        </button>
+        <span className="font-display font-semibold text-charcoal">Place Details</span>
+      </div>
+      <div className="flex flex-col items-center justify-center gap-4 py-20 px-4">
+        <p className="text-6xl">🗺️</p>
+        <h2 className="font-display font-bold text-2xl text-charcoal">Place not found</h2>
+        <p className="text-muted text-sm text-center max-w-xs">This place data isn't available right now. Try exploring nearby destinations instead.</p>
+        <div className="flex gap-3">
+          <button onClick={() => navigate(-1)} className="btn-secondary text-sm">Go Back</button>
+          <button onClick={() => navigate("/explore")} className="btn-primary text-sm">Explore Places</button>
+        </div>
+      </div>
     </div>
   )
 
@@ -52,7 +93,7 @@ export default function PlaceDetail() {
   const catKey = place.category?.name?.toLowerCase() || "heritage"
   const catEmoji = CAT_EMOJI[catKey] || "📍"
   const catColor = CAT_COLORS[catKey] || "muted"
-  const gradient = PLACEHOLDER_GRADIENTS[place.id % PLACEHOLDER_GRADIENTS.length]
+  const gradient = PLACEHOLDER_GRADIENTS[Math.abs(place.id) % PLACEHOLDER_GRADIENTS.length]
   const cityCoords = CITY_COORDS[place.city] || [17.6868, 83.2185]
 
   return (
@@ -176,8 +217,9 @@ export default function PlaceDetail() {
           </div>
         )}
         {tab === "transport" && (
-          <div className="max-w-2xl">
+          <div className="max-w-2xl space-y-6">
             <TransportComparison fromCoords={cityCoords} toCoords={[place.latitude, place.longitude]} fromName={place.city} toName={place.name} />
+            <RideBooking fromName={place.city} toName={place.name} distanceKm={place.distance_km} />
           </div>
         )}
         {tab === "know-india" && <KnowIndiaTab place={place} />}

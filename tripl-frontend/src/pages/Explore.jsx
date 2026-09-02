@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState, useCallback } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams, useNavigate } from "react-router-dom"
 import { Map, List, Search, MapPin, Navigation, Loader2 } from "lucide-react"
 import FilterPanel from "../components/explore/FilterPanel"
 import MapView from "../components/explore/MapView"
@@ -8,6 +8,36 @@ import LoadingMandala from "../components/ui/LoadingMandala"
 import EmptyState from "../components/ui/EmptyState"
 import { getNearbyPlaces, getNearbyPlacesByCoords } from "../api/places"
 import useAppStore from "../store/useAppStore"
+
+const FAMOUS_DESTINATIONS = [
+  { name: "Taj Mahal", city: "Agra", emoji: "🕌", rating: 4.8, gradient: "from-saffron to-terracotta",
+    image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=250&fit=crop",
+    history: "Built by Emperor Shah Jahan in 1632-1653 as a mausoleum for his wife Mumtaz Mahal. A UNESCO World Heritage Site and one of the Seven Wonders of the World." },
+  { name: "Jaipur", city: "Jaipur", emoji: "🏯", rating: 4.7, gradient: "from-terracotta to-saffron",
+    image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?w=400&h=250&fit=crop",
+    history: "Founded in 1727 by Maharaja Sawai Jai Singh II. Known as the Pink City for its terracotta buildings. Home to Hawa Mahal, Amber Fort, and City Palace." },
+  { name: "Varanasi", city: "Varanasi", emoji: "🛕", rating: 4.8, gradient: "from-indigo to-saffron",
+    image: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=400&h=250&fit=crop",
+    history: "One of the oldest continuously inhabited cities in the world (5,000+ years). Sacred to Hindus — the Ganges ghats host spiritual rituals and evening aarti ceremonies." },
+  { name: "Goa", city: "Goa", emoji: "🏖️", rating: 4.6, gradient: "from-peacock to-emerald",
+    image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=250&fit=crop",
+    history: "Portuguese colony from 1510-1961. Blends Indian and Portuguese cultures — 400+ years of heritage churches, spice plantations, and golden beaches." },
+  { name: "Hampi", city: "Hampi", emoji: "🏛️", rating: 4.7, gradient: "from-indigo to-peacock",
+    image: "https://images.unsplash.com/photo-1590050752117-2c8b5e0e3d6e?w=400&h=250&fit=crop",
+    history: "Ruins of the Vijayanagara Empire (1336-1646). Once one of the richest cities in the world. Over 1,600 surviving remains of temples, palaces, and markets." },
+  { name: "Kerala Backwaters", city: "Alleppey", emoji: "🛶", rating: 4.7, gradient: "from-emerald to-peacock",
+    image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=250&fit=crop",
+    history: "A network of 900+ km of waterways in Kerala. Houseboat cruises through lagoons, lakes, and canals fringed by coconut palms — God's Own Country." },
+  { name: "Mysore Palace", city: "Mysore", emoji: "🏰", rating: 4.7, gradient: "from-saffron to-indigo",
+    image: "https://images.unsplash.com/photo-1600112356915-089fbaa7f718?w=400&h=250&fit=crop",
+    history: "Built in 1912 in Indo-Saracenic style for the Wadiyar dynasty. Illuminated with 97,000 light bulbs during Dasara festival — a royal spectacle." },
+  { name: "Darjeeling", city: "Darjeeling", emoji: "🏔️", rating: 4.6, gradient: "from-emerald to-indigo",
+    image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400&h=250&fit=crop",
+    history: "Queen of the Himalayas — British hill station at 2,225m. Famous for Darjeeling tea, toy train (UNESCO), and sunrise views of Kanchenjunga." },
+  { name: "Rajasthan Forts", city: "Jaipur", emoji: "⚔️", rating: 4.8, gradient: "from-terracotta to-indigo",
+    image: "https://images.unsplash.com/photo-1599661046289-e31897833d08?w=400&h=250&fit=crop",
+    history: "Rajasthan's Hill Forts are UNESCO sites — Chittorgarh, Kumbhalgarh, Amber, and more. Massive ramparts built by Rajput warriors over 1,000 years." },
+]
 
 const CITY_COORDS = {
   Visakhapatnam: [17.6868, 83.2185],
@@ -23,8 +53,9 @@ const CITY_COORDS = {
 }
 
 export default function Explore() {
+  const navigate = useNavigate()
   const [params] = useSearchParams()
-  const cityParam = params.get("city") || "Visakhapatnam"
+  const cityParam = params.get("city") || ""
   const latParam = params.get("lat")
   const lngParam = params.get("lng")
   const [viewMode, setViewMode] = useState("split") // "split"|"map"|"list"
@@ -39,12 +70,16 @@ export default function Explore() {
   const coords = liveCoords || CITY_COORDS[cityParam] || computedCenter || [17.6868, 83.2185]
 
   const loadPlaces = useCallback(async () => {
+    if (!cityParam && !liveCoords) {
+      setPlacesLoading(false)
+      return
+    }
     setPlacesLoading(true)
     setPlacesError(null)
     try {
       let res
       if (liveCoords) {
-        res = await getNearbyPlacesByCoords(liveCoords[0], liveCoords[1], maxDistance)
+        res = await getNearbyPlacesByCoords(liveCoords[0], liveCoords[1], maxDistance, "", cityParam)
       } else {
         res = await getNearbyPlaces(cityParam, maxDistance)
       }
@@ -166,6 +201,30 @@ export default function Explore() {
           <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
             {placesLoading ? (
               <LoadingMandala text="Discovering places near you..." />
+            ) : !cityParam && !liveCoords ? (
+              <div className="p-4">
+                <div className="text-center mb-6">
+                  <div className="text-4xl mb-2">🇮🇳</div>
+                  <h2 className="font-display font-bold text-xl text-charcoal mb-1">Where do you want to explore?</h2>
+                  <p className="text-muted text-sm">Type a city above or pick a famous destination below</p>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                  {FAMOUS_DESTINATIONS.map((d) => (
+                    <button key={d.city} onClick={() => navigate(`/explore?city=${d.city}`)}
+                      className="group text-left rounded-xl overflow-hidden border border-border hover:border-saffron/40 hover:shadow-lg transition-all duration-300">
+                      <div className={`relative h-32 bg-gradient-to-br ${d.gradient} flex items-center justify-center overflow-hidden`}>                        <img src={d.image} alt={d.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={e => { e.target.style.display = "none" }} />
+                        <span className="relative text-5xl group-hover:scale-110 transition-transform duration-300 z-10 drop-shadow-lg">{d.emoji}</span>
+                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-charcoal text-xs font-bold px-2 py-0.5 rounded-full">⭐ {d.rating}</div>
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-display font-semibold text-sm text-charcoal group-hover:text-saffron transition-colors">{d.name}</h3>
+                        <p className="text-muted text-xs mt-0.5 line-clamp-2">{d.history}</p>
+                        <span className="inline-block mt-2 text-saffron text-xs font-semibold">Explore →</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : placesError && filteredPlaces.length === 0 ? (
               <EmptyState icon="🌐" title="Backend not connected" description={placesError}
                 action={<button onClick={loadPlaces} className="btn-primary text-sm">Retry</button>} />
@@ -187,6 +246,26 @@ export default function Explore() {
           <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
             {placesLoading ? (
               <LoadingMandala text="Finding places..." />
+            ) : !cityParam && !liveCoords ? (
+              <div className="p-3">
+                <div className="text-center mb-4">
+                  <div className="text-3xl mb-1">🇮🇳</div>
+                  <h3 className="font-display font-semibold text-charcoal text-sm">Pick a destination</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {FAMOUS_DESTINATIONS.map((d) => (
+                    <button key={d.city} onClick={() => navigate(`/explore?city=${d.city}`)}
+                      className="group text-left rounded-xl overflow-hidden border border-border hover:border-saffron/40 transition-all">
+                      <div className={`h-20 bg-gradient-to-br ${d.gradient} flex items-center justify-center`}>                        <span className="text-3xl group-hover:scale-110 transition-transform">{d.emoji}</span>
+                      </div>
+                      <div className="p-2">
+                        <h3 className="font-semibold text-xs text-charcoal group-hover:text-saffron">{d.name}</h3>
+                        <p className="text-muted text-[10px] line-clamp-1 mt-0.5">{d.history}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             ) : placesError && filteredPlaces.length === 0 ? (
               <EmptyState icon="🌐" title="Backend not connected" description={placesError}
                 action={<button onClick={loadPlaces} className="btn-primary text-sm">Retry</button>} />

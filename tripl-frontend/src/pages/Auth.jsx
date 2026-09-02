@@ -1,10 +1,10 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
-import { login, register } from "../api/auth"
+import { login, register, sendOtp, registerPhone, loginPhone } from "../api/auth"
 import useAuthStore from "../store/useAuthStore"
 import { showToast } from "../components/ui/Toast"
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react"
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Phone, CheckCircle, Loader2 } from "lucide-react"
 
 export default function Auth() {
   const [params] = useSearchParams()
@@ -15,6 +15,14 @@ export default function Auth() {
   const { setToken, setUser } = useAuthStore()
   const [form, setForm] = useState({ full_name: "", email: "", password: "" })
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  // Phone OTP state
+  const [otpStep, setOtpStep] = useState(0) // 0=phone, 1=otp, 2=name
+  const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "", full_name: "" })
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [otpTimer, setOtpTimer] = useState(0)
+  const [otpPhone, setOtpPhone] = useState("")
+  const setPhone = (k) => (e) => setPhoneForm(f => ({ ...f, [k]: e.target.value }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -30,10 +38,81 @@ export default function Auth() {
       } else {
         showToast(`Welcome back, ${res.data.user.full_name}!`, "success")
       }
-      navigate("/explore?city=Visakhapatnam")
+      navigate("/explore")
     } catch (e) {
       showToast(e.response?.data?.detail || "Authentication failed. Please try again.", "error")
     } finally { setLoading(false) }
+  }
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault()
+    setOtpLoading(true)
+    try {
+      await sendOtp(phoneForm.phone)
+      setOtpPhone(phoneForm.phone)
+      setOtpStep(1)
+      setOtpTimer(30)
+      const interval = setInterval(() => {
+        setOtpTimer(prev => {
+          if (prev <= 1) { clearInterval(interval); return 0 }
+          return prev - 1
+        })
+      }, 1000)
+      showToast("OTP sent! Check your phone 📱", "success")
+    } catch (e) {
+      showToast(e.response?.data?.detail || "Failed to send OTP.", "error")
+    } finally { setOtpLoading(false) }
+  }
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault()
+    setOtpLoading(true)
+    try {
+      const res = await loginPhone(phoneForm.phone, phoneForm.otp)
+      setToken(res.data.access_token)
+      setUser(res.data.user)
+      showToast(`Welcome back, ${res.data.user.full_name}!`, "success")
+      navigate("/explore")
+    } catch (e) {
+      if (e.response?.status === 401 && e.response?.data?.detail?.includes("not found")) {
+        setOtpStep(2)
+        showToast("New number? Create your account below.", "info")
+      } else {
+        showToast(e.response?.data?.detail || "Invalid OTP.", "error")
+      }
+    } finally { setOtpLoading(false) }
+  }
+
+  const handlePhoneRegister = async (e) => {
+    e.preventDefault()
+    setOtpLoading(true)
+    try {
+      const res = await registerPhone(phoneForm.phone, phoneForm.otp, phoneForm.full_name)
+      setToken(res.data.access_token)
+      setUser(res.data.user)
+      showToast(`Account created! Welcome to TripL 🎉`, "success")
+      navigate("/explore")
+    } catch (e) {
+      showToast(e.response?.data?.detail || "Registration failed.", "error")
+    } finally { setOtpLoading(false) }
+  }
+
+  const handleResendOtp = async () => {
+    if (otpTimer > 0) return
+    setOtpLoading(true)
+    try {
+      await sendOtp(otpPhone)
+      setOtpTimer(30)
+      const interval = setInterval(() => {
+        setOtpTimer(prev => {
+          if (prev <= 1) { clearInterval(interval); return 0 }
+          return prev - 1
+        })
+      }, 1000)
+      showToast("OTP resent! 📱", "success")
+    } catch (e) {
+      showToast("Failed to resend OTP.", "error")
+    } finally { setOtpLoading(false) }
   }
 
   return (
@@ -52,7 +131,7 @@ export default function Auth() {
           <h2 className="font-display font-bold text-4xl mb-4">Explore India<br />Like Never Before</h2>
           <p className="text-white/70 text-lg max-w-sm mx-auto leading-relaxed">Join thousands discovering India's hidden gems with AI-powered travel planning.</p>
           <div className="mt-10 grid grid-cols-3 gap-6">
-            {[["96+", "Places"], ["10", "Cities"], ["AI", "Powered"]].map(([n, l]) => (
+            {[["Any", "City"], ["AI", "Powered"], ["Free", "To Use"]].map(([n, l]) => (
               <div key={l}><div className="font-display font-bold text-3xl text-saffron">{n}</div><div className="text-white/50 text-xs">{l}</div></div>
             ))}
           </div>
@@ -74,42 +153,133 @@ export default function Auth() {
               </svg>
               <span className="font-display font-bold text-2xl text-indigo">Trip<span className="text-saffron">L</span></span>
             </div>
-            <h1 className="font-display font-bold text-3xl text-charcoal mb-1">{tab === 0 ? "Welcome back" : "Create account"}</h1>
-            <p className="text-muted text-sm">{tab === 0 ? "Sign in to your TripL account" : "Start your Indian journey today"}</p>
+            <h1 className="font-display font-bold text-3xl text-charcoal mb-1">
+              {tab === 0 ? "Welcome back" : tab === 2 ? "Phone Sign In" : "Create account"}
+            </h1>
+            <p className="text-muted text-sm">
+              {tab === 0 ? "Sign in to your TripL account" : "Use your phone number for quick access"}
+            </p>
           </div>
 
           {/* Tab toggle */}
           <div className="flex bg-sand rounded-2xl p-1 mb-8">
-            {["Sign In", "Register"].map((t, i) => (
-              <button key={t} onClick={() => setTab(i)} className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${tab === i ? "bg-white text-saffron shadow-sm" : "text-muted"}`}>{t}</button>
+            {["Email", "Phone"].map((t, i) => (
+              <button key={t} onClick={() => { setTab(i); setOtpStep(0); setPhoneForm({ phone: "", otp: "", full_name: "" }) }}
+                className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${tab === i ? "bg-white text-saffron shadow-sm" : "text-muted"}`}>{t}</button>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {tab === 1 && (
+          {/* Email Auth */}
+          {tab === 0 && (
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
-                <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-                <input type="text" placeholder="Full Name" value={form.full_name} onChange={set("full_name")} required className="input-field pl-10" />
+                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                <input type="email" placeholder="Email address" value={form.email} onChange={set("email")} required className="input-field pl-10" />
               </div>
-            )}
-            <div className="relative">
-              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-              <input type="email" placeholder="Email address" value={form.email} onChange={set("email")} required className="input-field pl-10" />
-            </div>
-            <div className="relative">
-              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-              <input type={showPw ? "text" : "password"} placeholder="Password" value={form.password} onChange={set("password")} required minLength={8} className="input-field pl-10 pr-10" />
-              <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-charcoal">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              <div className="relative">
+                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                <input type={showPw ? "text" : "password"} placeholder="Password" value={form.password} onChange={set("password")} required minLength={8} className="input-field pl-10 pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-charcoal">
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5 text-base">
+                {loading ? "Please wait..." : "Sign In →"}
               </button>
+            </form>
+          )}
+
+          {/* Phone OTP Auth */}
+          {tab === 1 && (
+            <div className="space-y-4">
+              {/* Step progress */}
+              <div className="flex items-center gap-2 mb-6">
+                {[0, 1, 2].filter(s => s <= Math.max(otpStep, 0) + (otpStep >= 1 ? 1 : 0) + (otpStep >= 2 ? 1 : 0)).map((s, i, arr) => (
+                  <div key={s} className="flex items-center gap-2 flex-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                      s < otpStep ? "bg-emerald text-white" : s === otpStep ? "bg-saffron text-white" : "bg-sand text-muted"
+                    }`}>
+                      {s < otpStep ? <CheckCircle size={14} /> : s + 1}
+                    </div>
+                    {i < arr.length - 1 && <div className={`flex-1 h-0.5 rounded ${s < otpStep ? "bg-emerald" : "bg-sand"}`} />}
+                  </div>
+                ))}
+              </div>
+
+              {/* Step 0: Enter Phone */}
+              {otpStep === 0 && (
+                <form onSubmit={handleSendOtp} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted mb-1 block">Phone Number</label>
+                    <div className="relative">
+                      <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                      <input type="tel" placeholder="+91 98765 43210" value={phoneForm.phone}
+                        onChange={setPhone("phone")} required minLength={10}
+                        className="input-field pl-10" />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={otpLoading} className="btn-primary w-full justify-center py-3.5 text-base">
+                    {otpLoading ? <Loader2 size={18} className="animate-spin" /> : "Send OTP →"}
+                  </button>
+                </form>
+              )}
+
+              {/* Step 1: Enter OTP */}
+              {otpStep === 1 && (
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">📱</div>
+                    <p className="text-sm text-muted">OTP sent to <span className="font-semibold text-charcoal">{otpPhone}</span></p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted mb-1 block">Enter 6-digit OTP</label>
+                    <input type="text" placeholder="000000" value={phoneForm.otp} onChange={setPhone("otp")}
+                      required maxLength={6} pattern="[0-9]{6}" inputMode="numeric"
+                      className="input-field text-center text-2xl tracking-[0.5em] font-mono" autoFocus />
+                  </div>
+                  <button type="submit" disabled={otpLoading} className="btn-primary w-full justify-center py-3.5 text-base">
+                    {otpLoading ? <Loader2 size={18} className="animate-spin" /> : "Verify & Sign In →"}
+                  </button>
+                  <button type="button" onClick={handleResendOtp} disabled={otpTimer > 0}
+                    className={`w-full text-center text-sm ${otpTimer > 0 ? "text-muted" : "text-saffron hover:underline"}`}>
+                    {otpTimer > 0 ? `Resend OTP in ${otpTimer}s` : "Resend OTP"}
+                  </button>
+                  <button type="button" onClick={() => setOtpStep(0)}
+                    className="w-full text-center text-sm text-muted hover:text-charcoal">← Change phone number</button>
+                </form>
+              )}
+
+              {/* Step 2: New user - enter name */}
+              {otpStep === 2 && (
+                <form onSubmit={handlePhoneRegister} className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">🎉</div>
+                    <p className="text-sm text-muted">New to TripL? Create your account</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted mb-1 block">Full Name</label>
+                    <div className="relative">
+                      <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                      <input type="text" placeholder="Your full name" value={phoneForm.full_name}
+                        onChange={setPhone("full_name")} required minLength={2}
+                        className="input-field pl-10" />
+                    </div>
+                  </div>
+                  <div className="bg-sand/50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-muted">Phone: <span className="font-semibold text-charcoal">{otpPhone}</span></p>
+                  </div>
+                  <button type="submit" disabled={otpLoading} className="btn-primary w-full justify-center py-3.5 text-base">
+                    {otpLoading ? <Loader2 size={18} className="animate-spin" /> : "Create Account →"}
+                  </button>
+                  <button type="button" onClick={() => { setOtpStep(0); setPhoneForm({ phone: "", otp: "", full_name: "" }) }}
+                    className="w-full text-center text-sm text-muted hover:text-charcoal">← Start over</button>
+                </form>
+              )}
             </div>
-            <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5 text-base">
-              {loading ? "Please wait..." : tab === 0 ? "Sign In →" : "Create Account →"}
-            </button>
-          </form>
+          )}
 
           <div className="mt-6 text-center">
-            <button onClick={() => navigate("/explore?city=Visakhapatnam")} className="text-sm text-muted hover:text-saffron transition-colors">
+            <button onClick={() => navigate("/explore")} className="text-sm text-muted hover:text-saffron transition-colors">
               Continue without account →
             </button>
           </div>

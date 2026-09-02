@@ -12,10 +12,12 @@ Weights:
 """
 
 import math
+import asyncio
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 
 from app.services.geo_utils import haversine_km
+from app.services.routing import get_road_distance
 
 
 # Transport speeds and costs (fallback table)
@@ -91,30 +93,28 @@ def is_place_open(place: Any, current_minutes: int, stay_minutes: int) -> bool:
         return True  # If we can't parse, assume open
 
 
-def calculate_travel(
+async def calculate_travel(
     lat1: float, lon1: float,
     lat2: float, lon2: float,
     mode: str,
     transport_modes_db: Optional[List] = None,
 ) -> Dict[str, float]:
-    distance_km = haversine_km(lat1, lon1, lat2, lon2)
-    # Road factor (straight-line ≈ 70% of road distance)
-    road_km = distance_km * 1.4
+    road_info = await get_road_distance(lat1, lon1, lat2, lon2)
+    distance_km = road_info["distance_km"]
 
     t = TRANSPORT_TABLE.get(mode, TRANSPORT_TABLE["car"])
-    # Override from DB transport modes if provided
     if transport_modes_db:
         for tm in transport_modes_db:
             if tm.mode == mode:
                 t = {"speed": tm.avg_speed_kmph, "cost_per_km": float(tm.cost_per_km), "icon": tm.icon}
                 break
 
-    duration_min = int((road_km / t["speed"]) * 60)
-    cost = round(road_km * t["cost_per_km"], 2)
+    duration_min = int((distance_km / t["speed"]) * 60)
+    cost = round(distance_km * t["cost_per_km"], 2)
     return {"distance_km": round(distance_km, 2), "duration_min": duration_min, "cost": cost, "icon": t["icon"]}
 
 
-def generate_trail(
+async def generate_trail(
     places: List[Any],
     categories: Dict[int, Any],
     transport_modes_db: List[Any],
@@ -168,7 +168,7 @@ def generate_trail(
     cumulative_min = 0
 
     for score, place in scored:
-        travel = calculate_travel(
+        travel = await calculate_travel(
             current_lat, current_lon,
             float(place.latitude), float(place.longitude),
             transport_mode, transport_modes_db,

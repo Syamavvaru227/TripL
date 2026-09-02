@@ -64,7 +64,7 @@ export default function MapView({ center, places, onPlaceClick }) {
           return (
             <Marker key={place.id} position={[place.latitude, place.longitude]}
               icon={createCustomIcon(color, emoji, isHovered)}
-              eventHandlers={{ click: () => { onPlaceClick?.(place); navigate(`/place/${place.id}`) } }}>
+              eventHandlers={{ click: () => { onPlaceClick?.(place); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } }) } }}>
               <Popup>
                 <div className="p-3 min-w-[180px]">
                   <div className="flex items-start gap-2 mb-2">
@@ -78,7 +78,7 @@ export default function MapView({ center, places, onPlaceClick }) {
                     <span>⭐ {place.rating?.toFixed(1)}</span>
                     <span>📍 {place.distance_km?.toFixed(1)} km</span>
                   </div>
-                  <button onClick={() => navigate(`/place/${place.id}`)}
+                  <button onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } })}
                     className="w-full bg-saffron text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-saffron-dark transition-colors">
                     Explore →
                   </button>

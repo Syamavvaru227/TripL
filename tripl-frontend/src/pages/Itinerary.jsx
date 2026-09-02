@@ -126,9 +126,19 @@ export default function Itinerary() {
                     <span>🕐 Until {stop.departure_time}</span>
                   </div>
                   {i > 0 && (
-                    <div className="mt-2 pt-2 border-t border-border text-xs text-muted flex items-center gap-2">
-                      <span>{stop.transport_icon || "🚗"}</span>
-                      <span>From previous stop: {stop.travel_from_prev_minutes} min · {stop.distance_from_prev_km?.toFixed(1)} km · ₹{Math.round(stop.travel_cost_inr)}</span>
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <div className="text-xs text-muted flex items-center gap-2 mb-2">
+                        <span>{stop.transport_icon || "🚗"}</span>
+                        <span>From previous stop: {stop.travel_from_prev_minutes} min · {stop.distance_from_prev_km?.toFixed(1)} km · ₹{Math.round(stop.travel_cost_inr)}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <a href={`https://m.uber.com/go/search-pickup?pickup=${encodeURIComponent(trail.stops?.[i-1]?.place?.name || trail.city || "")}&dropoff=${encodeURIComponent(stop.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                          className="text-[10px] bg-black text-white px-2 py-1 rounded-full hover:opacity-80">Uber</a>
+                        <a href={`https://book.olacabs.com/?pickup=${encodeURIComponent(trail.stops?.[i-1]?.place?.name || trail.city || "")}&drop=${encodeURIComponent(stop.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                          className="text-[10px] bg-blue-600 text-white px-2 py-1 rounded-full hover:opacity-80">Ola</a>
+                        <a href={`https://rapido.bike/ride?pickup=${encodeURIComponent(trail.stops?.[i-1]?.place?.name || trail.city || "")}&dropoff=${encodeURIComponent(stop.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                          className="text-[10px] bg-yellow-400 text-black px-2 py-1 rounded-full hover:opacity-80">Rapido</a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -169,6 +179,51 @@ export default function Itinerary() {
                 {r}
               </div>
             ))}
+          </div>
+        </motion.div>
+
+        {/* Total Trip Summary */}
+        <motion.div className="card p-6 mb-6 bg-gradient-to-br from-indigo/5 to-saffron/5 border border-saffron/20"
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+          <h3 className="font-display font-semibold text-charcoal mb-4">📊 Total Trip Summary</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl mb-1">📍</div>
+              <div className="font-bold text-charcoal">{trail.stops?.length || 0}</div>
+              <div className="text-muted text-xs">Places</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl mb-1">⏱️</div>
+              <div className="font-bold text-charcoal">{Math.floor((trail.total_duration_minutes || 0) / 60)}h {(trail.total_duration_minutes || 0) % 60}m</div>
+              <div className="text-muted text-xs">Total Time</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl mb-1">🛣️</div>
+              <div className="font-bold text-charcoal">{trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0).toFixed(1)} km</div>
+              <div className="text-muted text-xs">Total Distance</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl mb-1">💰</div>
+              <div className="font-bold text-saffron">₹{Math.round(trail.total_cost_inr || 0)}</div>
+              <div className="text-muted text-xs">Total Cost</div>
+            </div>
+          </div>
+          <div className="border-t border-border pt-4">
+            <p className="text-muted text-sm mb-3">Book your complete trip ride:</p>
+            <div className="flex gap-3">
+              <a href={`https://m.uber.com/go/search-pickup?pickup=${encodeURIComponent(trail.city || "")}&dropoff=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                🚗 Book Uber — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 14)}
+              </a>
+              <a href={`https://book.olacabs.com/?pickup=${encodeURIComponent(trail.city || "")}&drop=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                🛺 Book Ola — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 12)}
+              </a>
+              <a href={`https://rapido.bike/ride?pickup=${encodeURIComponent(trail.city || "")}&dropoff=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                🏍️ Book Rapido — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 8)}
+              </a>
+            </div>
           </div>
         </motion.div>
 

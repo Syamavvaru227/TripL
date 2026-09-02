@@ -288,7 +288,8 @@ async def _enrich_with_details(items: list, client: httpx.AsyncClient) -> list:
         params = {
             "action": "query",
             "pageids": "|".join(ids),
-            "prop": "coordinates|pageprops|description",
+            "prop": "coordinates|pageprops|description|pageimages",
+            "pithumbsize": "600",
             "format": "json",
         }
         try:
@@ -330,6 +331,10 @@ async def _enrich_with_details(items: list, client: httpx.AsyncClient) -> list:
             props = page.get("pageprops", {})
             if "wikibase_short_description" in props:
                 item["description"] = props["wikibase_short_description"]
+            # Thumbnail image
+            thumb = page.get("thumbnail")
+            if thumb and thumb.get("source"):
+                item["image_url"] = thumb["source"]
 
     return items
 
@@ -401,6 +406,7 @@ def _build_places(items: list, city: str, lat: float, lon: float, radius_km: flo
         categories_text = " ".join(str(c.get("title", "")) for c in item.get("categories", []))
         cat = _category_from_name(name, description, categories_text)
 
+        image_url = item.get("image_url")
         places.append({
             "name": name,
             "latitude": item_lat,
@@ -415,6 +421,7 @@ def _build_places(items: list, city: str, lat: float, lon: float, radius_km: flo
             "address": city,
             "city": city,
             "distance_km": round(dist, 2),
+            "image_url": image_url,
         })
     return places
 
@@ -513,6 +520,7 @@ async def fetch_real_places(city: str, latitude: float, longitude: float, radius
                     "entry_fee": 0.0, "opening_time": None, "closing_time": None,
                     "description": description or f"A tourist place near {city}.",
                     "address": city, "city": city, "distance_km": round(dist, 2),
+                    "image_url": item.get("image_url"),
                 })
 
     all_places.sort(key=lambda p: p["distance_km"])

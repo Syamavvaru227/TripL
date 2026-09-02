@@ -27,7 +27,7 @@ export default function PlaceCard({ place, index = 0 }) {
   return (
     <motion.div
       className="card cursor-pointer group"
-      onClick={() => navigate(`/place/${place.id}`)}
+      onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } })}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05, type: "spring", stiffness: 300, damping: 25 }}
@@ -67,7 +67,7 @@ export default function PlaceCard({ place, index = 0 }) {
           {place.entry_fee > 0 && <span>₹{place.entry_fee}</span>}
         </div>
         <div className="mt-3 pt-3 border-t border-border flex gap-2">
-          <button onClick={e => { e.stopPropagation(); navigate(`/place/${place.id}`) }}
+          <button onClick={e => { e.stopPropagation(); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } }) }}
             className="flex-1 bg-saffron/10 text-saffron text-xs font-semibold py-2 rounded-lg hover:bg-saffron hover:text-white transition-colors">
             Explore Destination
           </button>

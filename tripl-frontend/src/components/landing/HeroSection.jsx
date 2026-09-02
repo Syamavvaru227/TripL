@@ -155,7 +155,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
-            {[["96+","Tourist Places"], ["10","Cities Covered"], ["5","Travel Modes"], ["AI","Smart Itinerary"]].map(([n, l], i) => (
+            {[["Any","Indian City"], ["AI","Smart Itinerary"], ["Real-Time","Places"], ["Free","To Use"]].map(([n, l], i) => (
               <motion.div key={l} className="text-center"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}

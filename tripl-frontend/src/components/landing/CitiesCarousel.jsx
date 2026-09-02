@@ -60,7 +60,7 @@ export default function CitiesCarousel() {
                 <p className="text-muted text-sm leading-relaxed mb-3">{c.desc}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold bg-saffron/10 text-saffron px-2.5 py-1 rounded-full">
-                    <MapPin size={10} className="inline mr-1" />{c.places} places
+                    <MapPin size={10} className="inline mr-1" />Explore now
                   </span>
                   <ChevronRight size={16} className="text-saffron group-hover:translate-x-1 transition-transform" />
                 </div>

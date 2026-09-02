@@ -6,12 +6,13 @@ from app.database import get_db
 from app.models import TransportMode
 from app.schemas import TransportOption, TransportOptionsResponse
 from app.services.geo_utils import haversine_km
+from app.services.routing import get_road_distance
 
 router = APIRouter(prefix="/api/transport", tags=["transport"])
 
 
 @router.get("/options", response_model=TransportOptionsResponse)
-def get_transport_options(
+async def get_transport_options(
     from_lat: float = Query(...),
     from_lng: float = Query(...),
     to_lat: float = Query(...),
@@ -21,8 +22,9 @@ def get_transport_options(
     db: Session = Depends(get_db),
 ):
     """Return cost, time, and distance for all transport modes between two coordinates."""
-    distance_km = haversine_km(from_lat, from_lng, to_lat, to_lng)
-    road_km = distance_km * 1.4  # road factor
+    road_info = await get_road_distance(from_lat, from_lng, to_lat, to_lng)
+    distance_km = road_info["distance_km"]
+    road_km = distance_km
 
     modes = db.query(TransportMode).filter(TransportMode.is_active == True).all()
     options = []

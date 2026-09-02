@@ -8,6 +8,8 @@ from app.schemas import PlaceWithDistance
 from app.services.geo_utils import haversine_km
 from app.services.geocoder import geocode_city, reverse_geocode
 
+import httpx
+
 router = APIRouter(prefix="/api/places", tags=["places"])
 
 
@@ -114,7 +116,7 @@ async def get_nearby_places(
                 continue
             place["id"] = -(len(result) + 1)
             place["category_id"] = category_obj.id if category_obj else None
-            place["image_url"] = None
+            place.setdefault("image_url", None)
             place["category"] = (
                 {"id": category_obj.id, "name": category_obj.name, "icon": category_obj.icon, "color": category_obj.color}
                 if category_obj else {"id": None, "name": cat_name or "Heritage", "icon": "🏛️", "color": "#C2410C"}
@@ -124,6 +126,80 @@ async def get_nearby_places(
 
     # 4. Nothing found
     return []
+
+
+@router.get("/wiki-history")
+async def get_wiki_history(name: str = Query(..., description="Place name to look up")):
+    """Fetch Wikipedia summary/history for a tourist place."""
+    try:
+        headers = {"User-Agent": "TripL/1.0 (https://tripl.example.com; tripl@example.com)"}
+        async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
+            # First search for the Wikipedia article
+            search_resp = await client.get(
+                "https://en.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "list": "search",
+                    "srsearch": name,
+                    "srlimit": "1",
+                    "srnamespace": "0",
+                    "format": "json",
+                }
+            )
+            search_data = search_resp.json()
+            results = search_data.get("query", {}).get("search", [])
+            if not results:
+                return {"summary": "", "history": "", "famous_for": "", "facts": [], "sections": []}
+
+            page_title = results[0]["title"]
+            page_id = results[0]["pageid"]
+
+            # Get full article extract and sections
+            detail_resp = await client.get(
+                "https://en.wikipedia.org/w/api.php",
+                params={
+                    "action": "query",
+                    "pageids": str(page_id),
+                    "prop": "extracts|pageimages|categories",
+                    "exintro": "true",
+                    "explaintext": "true",
+                    "pithumbsize": "800",
+                    "format": "json",
+                }
+            )
+            detail_data = detail_resp.json()
+            pages = detail_data.get("query", {}).get("pages", {})
+            page = pages.get(str(page_id), {})
+
+            extract = page.get("extract", "")
+            thumb = page.get("thumbnail", {})
+            image_url = thumb.get("source") if thumb else None
+
+            # Split extract into sections
+            paragraphs = [p.strip() for p in extract.split("\n\n") if p.strip()]
+            summary = paragraphs[0] if paragraphs else ""
+            history = "\n\n".join(paragraphs[1:4]) if len(paragraphs) > 1 else ""
+            famous_for = paragraphs[4] if len(paragraphs) > 4 else ""
+
+            # Extract interesting facts
+            facts = []
+            for p in paragraphs:
+                lower = p.lower()
+                if any(kw in lower for kw in ("built", "constructed", "founded", "built in", "established", "century", "ancient")):
+                    facts.append(p[:200])
+                    if len(facts) >= 3:
+                        break
+
+            return {
+                "summary": summary,
+                "history": history,
+                "famous_for": famous_for,
+                "facts": facts,
+                "image_url": image_url,
+                "article_title": page_title,
+            }
+    except Exception:
+        return {"summary": "", "history": "", "famous_for": "", "facts": [], "image_url": None, "article_title": ""}
 
 
 @router.get("/{place_id}")
