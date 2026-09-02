@@ -48,9 +48,11 @@ export default function Auth() {
   const handleEmailRegister = async (e) => {
     e.preventDefault(); setLoading(true)
     try {
-      const res = await register(regForm.full_name, regForm.email, regForm.password)
-      setToken(res.data.access_token); setUser(res.data.user)
-      showToast(`Account created! Welcome to TripL 🎉`, "success"); navigate("/explore")
+      await register(regForm.full_name, regForm.email, regForm.password)
+      showToast(`Account created! Please sign in. 🎉`, "success")
+      setAuthMode("login")
+      setEmailForm({ email: regForm.email, password: "" })
+      setRegForm({ full_name: "", email: "", password: "" })
     } catch (e) { showToast(e.response?.data?.detail || "Registration failed.", "error") }
     finally { setLoading(false) }
   }
@@ -102,9 +104,11 @@ export default function Auth() {
   const handlePhoneRegister = async (e) => {
     e.preventDefault(); setOtpLoading(true)
     try {
-      const res = await registerPhone(phoneForm.phone, phoneForm.otp, phoneForm.full_name, phoneForm.email, phoneForm.password)
-      setToken(res.data.access_token); setUser(res.data.user)
-      showToast(`Account created! Welcome to TripL 🎉`, "success"); navigate("/explore")
+      await registerPhone(phoneForm.phone, phoneForm.otp, phoneForm.full_name, phoneForm.email, phoneForm.password)
+      showToast(`Account created! Please sign in. 🎉`, "success")
+      resetAll()
+      setTab(0); setAuthMode("login")
+      setEmailForm({ email: phoneForm.email, password: "" })
     } catch (e) { showToast(e.response?.data?.detail || "Registration failed.", "error") }
     finally { setOtpLoading(false) }
   }
