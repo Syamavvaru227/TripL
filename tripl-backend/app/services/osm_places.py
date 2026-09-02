@@ -378,6 +378,116 @@ def _category_duration(cat: str) -> int:
     }.get(cat, 60)
 
 
+def _category_timings(cat: str) -> dict:
+    """Return typical opening/closing times and crowded data for Indian tourist places."""
+    timings = {
+        "Temple": {
+            "opening_time": "06:00 AM", "closing_time": "12:00 PM",
+            "closing_evening": "08:00 PM",
+            "crowded_peak": "10:00 AM – 12:00 PM",
+            "crowded_level": "High",
+            "best_time": "Early morning (6–8 AM) or evening (5–7 PM)",
+            "tips": "Morning puja is the busiest time. Visit early for a peaceful experience.",
+        },
+        "Religious": {
+            "opening_time": "06:00 AM", "closing_time": "12:00 PM",
+            "closing_evening": "08:00 PM",
+            "crowded_peak": "10:00 AM – 12:00 PM",
+            "crowded_level": "High",
+            "best_time": "Early morning or late evening",
+            "tips": "Festivals can make the place extremely crowded. Check local events.",
+        },
+        "Heritage": {
+            "opening_time": "09:00 AM", "closing_time": "05:30 PM",
+            "closing_evening": "05:30 PM",
+            "crowded_peak": "11:00 AM – 2:00 PM",
+            "crowded_level": "Medium",
+            "best_time": "Morning (9–10:30 AM) before tour groups arrive",
+            "tips": "Closed on national holidays. Carry water — limited shade at forts.",
+        },
+        "Museum": {
+            "opening_time": "10:00 AM", "closing_time": "05:00 PM",
+            "closing_evening": "05:00 PM",
+            "crowded_peak": "11:00 AM – 3:00 PM",
+            "crowded_level": "Medium",
+            "best_time": "Late morning (10–11 AM) or weekday mornings",
+            "tips": "Usually closed on Mondays. Photography may have extra fees.",
+        },
+        "Beach": {
+            "opening_time": "06:00 AM", "closing_time": "06:00 PM",
+            "closing_evening": "Sunset",
+            "crowded_peak": "4:00 PM – 7:00 PM",
+            "crowded_level": "Medium",
+            "best_time": "Early morning (6–8 AM) or sunset (4:30–6 PM)",
+            "tips": "Weekends and holidays are very crowded. Sunrise visits are magical.",
+        },
+        "Park": {
+            "opening_time": "06:00 AM", "closing_time": "08:00 PM",
+            "closing_evening": "08:00 PM",
+            "crowded_peak": "5:00 PM – 7:30 PM",
+            "crowded_level": "Low",
+            "best_time": "Early morning for joggers, evening for families",
+            "tips": "Morning is peaceful with fewer people. Evening has food stalls.",
+        },
+        "Parks": {
+            "opening_time": "06:00 AM", "closing_time": "08:00 PM",
+            "closing_evening": "08:00 PM",
+            "crowded_peak": "5:00 PM – 7:30 PM",
+            "crowded_level": "Low",
+            "best_time": "Early morning for joggers, evening for families",
+            "tips": "Morning is peaceful with fewer people. Evening has food stalls.",
+        },
+        "Viewpoints": {
+            "opening_time": "06:00 AM", "closing_time": "06:30 PM",
+            "closing_evening": "06:30 PM",
+            "crowded_peak": "4:00 PM – 6:00 PM",
+            "crowded_level": "Low",
+            "best_time": "Sunrise (5:30–7 AM) or sunset (4:30–6 PM)",
+            "tips": "Golden hour gives the best photos. Carry a light jacket — windy.",
+        },
+        "Nature": {
+            "opening_time": "06:00 AM", "closing_time": "06:00 PM",
+            "closing_evening": "06:00 PM",
+            "crowded_peak": "10:00 AM – 4:00 PM",
+            "crowded_level": "Low",
+            "best_time": "Early morning for birdwatching and cool weather",
+            "tips": "Monsoon season may close trails. Check weather before visiting.",
+        },
+        "Cultural": {
+            "opening_time": "10:00 AM", "closing_time": "08:00 PM",
+            "closing_evening": "08:00 PM",
+            "crowded_peak": "6:00 PM – 8:00 PM",
+            "crowded_level": "Medium",
+            "best_time": "Evening performances have the best atmosphere",
+            "tips": "Book performance tickets in advance during festival season.",
+        },
+        "Shopping": {
+            "opening_time": "10:00 AM", "closing_time": "09:00 PM",
+            "closing_evening": "09:00 PM",
+            "crowded_peak": "5:00 PM – 8:00 PM",
+            "crowded_level": "High",
+            "best_time": "Morning (10 AM–12 PM) for bargaining, less rush",
+            "tips": "Bargaining is expected. Carry cash — many shops don't accept cards.",
+        },
+        "Food": {
+            "opening_time": "08:00 AM", "closing_time": "10:00 PM",
+            "closing_evening": "10:00 PM",
+            "crowded_peak": "12:30 PM – 2:00 PM",
+            "crowded_level": "Medium",
+            "best_time": "Off-peak hours: 11 AM or 3 PM",
+            "tips": "Street food is best in the evening. Try local specialties!",
+        },
+    }
+    return timings.get(cat, {
+        "opening_time": "08:00 AM", "closing_time": "06:00 PM",
+        "closing_evening": "06:00 PM",
+        "crowded_peak": "11:00 AM – 3:00 PM",
+        "crowded_level": "Medium",
+        "best_time": "Morning (8–10 AM) for fewer crowds",
+        "tips": "Carry water and sunscreen. Respect local customs.",
+    })
+
+
 def _build_places(items: list, city: str, lat: float, lon: float, radius_km: float) -> List[Dict[str, Any]]:
     """Convert enriched Wikipedia items into TripL place dicts."""
     places = []
@@ -407,6 +517,7 @@ def _build_places(items: list, city: str, lat: float, lon: float, radius_km: flo
         cat = _category_from_name(name, description, categories_text)
 
         image_url = item.get("image_url")
+        timings = _category_timings(cat)
         places.append({
             "name": name,
             "latitude": item_lat,
@@ -415,13 +526,17 @@ def _build_places(items: list, city: str, lat: float, lon: float, radius_km: flo
             "rating": 4.0,
             "avg_visit_duration": _category_duration(cat),
             "entry_fee": 0.0,
-            "opening_time": None,
-            "closing_time": None,
+            "opening_time": timings["opening_time"],
+            "closing_time": timings["closing_evening"],
             "description": description or f"A tourist place near {city}.",
             "address": city,
             "city": city,
             "distance_km": round(dist, 2),
             "image_url": image_url,
+            "crowded_peak": timings["crowded_peak"],
+            "crowded_level": timings["crowded_level"],
+            "best_time": timings["best_time"],
+            "visit_tips": timings["tips"],
         })
     return places
 
@@ -513,14 +628,21 @@ async def fetch_real_places(city: str, latitude: float, longitude: float, radius
                 description = str(item.get("description", ""))
                 categories_text = " ".join(str(c.get("title", "")) for c in item.get("categories", []))
                 cat = _category_from_name(name, description, categories_text)
+                timings = _category_timings(cat)
                 all_places.append({
                     "name": name, "latitude": lat, "longitude": lon,
                     "category_name": cat, "rating": 4.0,
                     "avg_visit_duration": _category_duration(cat),
-                    "entry_fee": 0.0, "opening_time": None, "closing_time": None,
+                    "entry_fee": 0.0,
+                    "opening_time": timings["opening_time"],
+                    "closing_time": timings["closing_evening"],
                     "description": description or f"A tourist place near {city}.",
                     "address": city, "city": city, "distance_km": round(dist, 2),
                     "image_url": item.get("image_url"),
+                    "crowded_peak": timings["crowded_peak"],
+                    "crowded_level": timings["crowded_level"],
+                    "best_time": timings["best_time"],
+                    "visit_tips": timings["tips"],
                 })
 
     all_places.sort(key=lambda p: p["distance_km"])

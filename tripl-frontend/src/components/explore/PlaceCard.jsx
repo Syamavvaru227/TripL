@@ -66,6 +66,16 @@ export default function PlaceCard({ place, index = 0 }) {
           {place.entry_fee === 0 && <span className="text-emerald font-medium">Free Entry</span>}
           {place.entry_fee > 0 && <span>₹{place.entry_fee}</span>}
         </div>
+        {place.crowded_level && (
+          <div className="flex items-center gap-2 mt-2">
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+              place.crowded_level === 'High' ? 'bg-red-50 text-red-600' :
+              place.crowded_level === 'Medium' ? 'bg-amber-50 text-amber-600' :
+              'bg-emerald-50 text-emerald-600'
+            }`}>👥 {place.crowded_level} crowd</span>
+            {place.best_time && <span className="text-[10px] text-muted">✨ Best: {place.best_time}</span>}
+          </div>
+        )}
         <div className="mt-3 pt-3 border-t border-border flex gap-2">
           <button onClick={e => { e.stopPropagation(); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } }) }}
             className="flex-1 bg-saffron/10 text-saffron text-xs font-semibold py-2 rounded-lg hover:bg-saffron hover:text-white transition-colors">

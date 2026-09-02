@@ -157,6 +157,48 @@ export default function PlaceDetail() {
         </div>
       </motion.div>
 
+      {/* Crowded & Timing Info */}
+      {place.crowded_level && (
+        <motion.div className="bg-white border-b border-border"
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm font-semibold text-charcoal">🕐 Best Times to Visit</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className={`rounded-xl p-3 text-center ${
+                place.crowded_level === 'High' ? 'bg-red-50' :
+                place.crowded_level === 'Medium' ? 'bg-amber-50' : 'bg-emerald-50'
+              }`}>
+                <div className="text-lg mb-1">👥</div>
+                <div className={`text-xs font-bold ${
+                  place.crowded_level === 'High' ? 'text-red-600' :
+                  place.crowded_level === 'Medium' ? 'text-amber-600' : 'text-emerald-600'
+                }`}>{place.crowded_level}</div>
+                <div className="text-[10px] text-muted">Peak Hours</div>
+                {place.crowded_peak && <div className="text-xs font-medium text-charcoal mt-1">{place.crowded_peak}</div>}
+              </div>
+              <div className="bg-saffron/5 rounded-xl p-3 text-center">
+                <div className="text-lg mb-1">✨</div>
+                <div className="text-xs font-bold text-saffron">Best Time</div>
+                {place.best_time && <div className="text-xs font-medium text-charcoal mt-1">{place.best_time}</div>}
+              </div>
+              <div className="bg-indigo/5 rounded-xl p-3 text-center">
+                <div className="text-lg mb-1">📅</div>
+                <div className="text-xs font-bold text-indigo">Opening</div>
+                <div className="text-xs font-medium text-charcoal mt-1">{place.opening_time || 'All day'}</div>
+                <div className="text-[10px] text-muted">to {place.closing_time || 'Sunset'}</div>
+              </div>
+              <div className="bg-peacock/5 rounded-xl p-3 text-center">
+                <div className="text-lg mb-1">💡</div>
+                <div className="text-xs font-bold text-peacock">Tips</div>
+                {place.visit_tips && <div className="text-[10px] font-medium text-charcoal mt-1 leading-tight">{place.visit_tips}</div>}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Tabs */}
       <div className="bg-white border-b border-border sticky top-16 z-10">
         <div className="max-w-5xl mx-auto px-4 flex gap-0 overflow-x-auto scrollbar-hide">
