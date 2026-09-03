@@ -173,6 +173,7 @@ class TrailRequest(BaseModel):
     available_hours: float
     budget_inr: float
     interests: List[str]
+    place_types: List[str] = []
     transport_mode: str
     start_time: str = "09:00"
 

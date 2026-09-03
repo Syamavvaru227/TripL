@@ -14,8 +14,8 @@ import { showToast } from "../components/ui/Toast"
 
 const CITY_COORDS = { Visakhapatnam: [17.6868, 83.2185], Hyderabad: [17.3850, 78.4867], Goa: [15.2993, 74.1240], Jaipur: [26.9124, 75.7873] }
 const PLACEHOLDER_GRADIENTS = ["from-peacock to-indigo", "from-saffron to-terracotta", "from-emerald to-peacock", "from-terracotta to-saffron", "from-indigo to-peacock"]
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️",newspots: "🛍️" }
-const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron", cultural: "peacock", viewpoint: "indigo", family: "emerald", shopping: "terracotta" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️", newspots: "🛍️", other: "📌" }
+const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron", cultural: "peacock", viewpoint: "indigo", family: "emerald", shopping: "terracotta", other: "muted" }
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -40,31 +40,64 @@ export default function PlaceDetail() {
       setLoading(false)
       return
     }
-    // If negative ID with name query param, construct a basic place object
-    const nameParam = new URLSearchParams(location.search).get("name")
+    // If place data was passed via URL search params (e.g. from itinerary stops), reconstruct
+    const searchParams = new URLSearchParams(location.search)
+    const nameParam = searchParams.get("name")
+    const cityParam = searchParams.get("city") || ""
+    const catParam = searchParams.get("cat") || "heritage"
+    const latParam = parseFloat(searchParams.get("lat"))
+    const lngParam = parseFloat(searchParams.get("lng"))
+    const imgParam = searchParams.get("img")
+
+    // If negative ID with name query param, try to fetch Wikipedia data and build place
     if (parseInt(id) < 0 && nameParam) {
       const timings = {
-        Temple: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning (6–8 AM)", visit_tips: "Morning puja is busiest. Visit early." },
-        Heritage: { opening_time: "09:00 AM", closing_time: "05:30 PM", crowded_peak: "11:00 AM – 2:00 PM", crowded_level: "Medium", best_time: "Morning (9–10:30 AM)", visit_tips: "Closed on national holidays." },
-        Religious: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning or late evening", visit_tips: "Festivals can make it extremely crowded." },
-        Beach: { opening_time: "06:00 AM", closing_time: "Sunset", crowded_peak: "4:00 PM – 7:00 PM", crowded_level: "Medium", best_time: "Early morning or sunset", visit_tips: "Weekends are very crowded." },
-        Nature: { opening_time: "06:00 AM", closing_time: "06:00 PM", crowded_peak: "10:00 AM – 4:00 PM", crowded_level: "Low", best_time: "Early morning", visit_tips: "Carry water and sunscreen." },
+        temple: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning (6–8 AM)", visit_tips: "Morning puja is busiest. Visit early." },
+        heritage: { opening_time: "09:00 AM", closing_time: "05:30 PM", crowded_peak: "11:00 AM – 2:00 PM", crowded_level: "Medium", best_time: "Morning (9–10:30 AM)", visit_tips: "Closed on national holidays." },
+        religious: { opening_time: "06:00 AM", closing_time: "08:00 PM", crowded_peak: "10:00 AM – 12:00 PM", crowded_level: "High", best_time: "Early morning or late evening", visit_tips: "Festivals can make it extremely crowded." },
+        beach: { opening_time: "06:00 AM", closing_time: "Sunset", crowded_peak: "4:00 PM – 7:00 PM", crowded_level: "Medium", best_time: "Early morning or sunset", visit_tips: "Weekends are very crowded." },
+        nature: { opening_time: "06:00 AM", closing_time: "06:00 PM", crowded_peak: "10:00 AM – 4:00 PM", crowded_level: "Low", best_time: "Early morning", visit_tips: "Carry water and sunscreen." },
+        park: { opening_time: "06:00 AM", closing_time: "06:00 PM", crowded_peak: "10:00 AM – 4:00 PM", crowded_level: "Low", best_time: "Early morning", visit_tips: "Carry water and sunscreen." },
+        cultural: { opening_time: "09:00 AM", closing_time: "06:00 PM", crowded_peak: "11:00 AM – 2:00 PM", crowded_level: "Medium", best_time: "Morning", visit_tips: "Check for special events." },
+        food: { opening_time: "10:00 AM", closing_time: "10:00 PM", crowded_peak: "12:00 PM – 2:00 PM", crowded_level: "Medium", best_time: "Off-peak hours", visit_tips: "Try local specialties." },
+        viewpoint: { opening_time: "06:00 AM", closing_time: "06:30 PM", crowded_peak: "4:00 PM – 6:00 PM", crowded_level: "Medium", best_time: "Sunrise or sunset", visit_tips: "Carry a camera." },
+        shopping: { opening_time: "10:00 AM", closing_time: "09:00 PM", crowded_peak: "5:00 PM – 8:00 PM", crowded_level: "High", best_time: "Morning (10 AM–12 PM)", visit_tips: "Bargain politely." },
+        other: { opening_time: "09:00 AM", closing_time: "06:00 PM", crowded_peak: "11:00 AM – 2:00 PM", crowded_level: "Medium", best_time: "Morning", visit_tips: "Check timings before visiting." },
       }
-      const defaultTimings = timings["Heritage"]
+      const catKey = catParam.toLowerCase()
+      const defaultTimings = timings[catKey] || timings["heritage"]
+      const CAT_MAP = { heritage: { name: "Heritage", icon: "🏛️", color: "#C2410C" }, beach: { name: "Beach", icon: "🏖️", color: "#0891B2" }, nature: { name: "Nature", icon: "🌳", color: "#059669" }, religious: { name: "Religious", icon: "🛕", color: "#D97706" }, park: { name: "Park", icon: "🌿", color: "#059669" }, cultural: { name: "Cultural", icon: "🎭", color: "#7C3AED" }, food: { name: "Food", icon: "🍛", color: "#D97706" }, viewpoint: { name: "Viewpoint", icon: "🏞️", color: "#4F46E5" }, shopping: { name: "Shopping", icon: "🛍️", color: "#C2410C" }, family: { name: "Family", icon: "👨‍👩‍👧", color: "#059669" }, other: { name: "Other", icon: "📌", color: "#6B7280" } }
+      const category = CAT_MAP[catKey] || CAT_MAP["heritage"]
+
+      // First set basic place so UI renders immediately
       setPlace({
         id: parseInt(id),
         name: nameParam,
         description: "",
-        city: "",
-        latitude: 0,
-        longitude: 0,
+        city: cityParam,
+        latitude: isNaN(latParam) ? 0 : latParam,
+        longitude: isNaN(lngParam) ? 0 : lngParam,
         rating: 4.0,
         avg_visit_duration: 60,
         entry_fee: 0,
         ...defaultTimings,
-        image_url: null,
-        category: { name: "Heritage", icon: "🏛️", color: "#C2410C" },
+        image_url: imgParam || null,
+        category,
       })
+
+      // Then try to fetch Wikipedia history in background
+      fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/places/wiki-history?name=${encodeURIComponent(nameParam)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.title) {
+            setPlace(prev => ({
+              ...prev,
+              description: data.summary || prev.description,
+            }))
+          }
+        })
+        .catch(() => {})
+
       setLoading(false)
       return
     }

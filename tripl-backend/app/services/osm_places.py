@@ -365,7 +365,7 @@ def _category_from_name(name: str, description: str, categories_text: str) -> st
         return "Nature"
     if any(w in combined for w in ("tower", "statue", "memorial")):
         return "Cultural"
-    return "Heritage"
+    return "Other"
 
 
 def _category_duration(cat: str) -> int:
@@ -374,7 +374,7 @@ def _category_duration(cat: str) -> int:
         "Beach": 90, "Temple": 45, "Religious": 45,
         "Park": 60, "Parks": 60, "Heritage": 75,
         "Museum": 60, "Viewpoints": 45, "Nature": 60,
-        "Cultural": 45, "Shopping": 60, "Food": 45,
+        "Cultural": 45, "Shopping": 60, "Food": 45, "Other": 60,
     }.get(cat, 60)
 
 
@@ -476,6 +476,14 @@ def _category_timings(cat: str) -> dict:
             "crowded_level": "Medium",
             "best_time": "Off-peak hours: 11 AM or 3 PM",
             "tips": "Street food is best in the evening. Try local specialties!",
+        },
+        "Other": {
+            "opening_time": "09:00 AM", "closing_time": "06:00 PM",
+            "closing_evening": "06:00 PM",
+            "crowded_peak": "11:00 AM – 3:00 PM",
+            "crowded_level": "Low",
+            "best_time": "Morning (9–11 AM) for fewer crowds",
+            "tips": "Check local timings before visiting. Carry water.",
         },
     }
     return timings.get(cat, {

@@ -81,6 +81,7 @@ async def generate_trail_endpoint(req: TrailRequest, db: Session = Depends(get_d
         available_hours=req.available_hours,
         budget_inr=req.budget_inr,
         interests=req.interests,
+        place_types=req.place_types,
         transport_mode=req.transport_mode,
         start_time=req.start_time,
         origin_lat=origin_lat,

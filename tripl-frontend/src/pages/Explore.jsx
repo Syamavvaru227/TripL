@@ -129,7 +129,12 @@ export default function Explore() {
 
   const applyFilters = useCallback(() => {
     let fp = [...places]
-    if (activeCategory !== "all") fp = fp.filter(p => p.category?.name?.toLowerCase().includes(activeCategory))
+    if (activeCategory === "other") {
+      const known = ["heritage", "beach", "beaches", "nature", "religious", "viewpoint", "food", "cultural", "shopping", "family", "park", "parks"]
+      fp = fp.filter(p => !p.category?.name || !known.includes(p.category.name.toLowerCase()))
+    } else if (activeCategory !== "all") {
+      fp = fp.filter(p => p.category?.name?.toLowerCase().includes(activeCategory))
+    }
     if (minRating > 0) fp = fp.filter(p => p.rating >= minRating)
     if (openNow) fp = fp.filter(p => p.opening_time)
     setFilteredPlaces(fp)

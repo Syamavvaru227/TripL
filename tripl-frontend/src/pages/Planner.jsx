@@ -28,8 +28,16 @@ const INTERESTS = [
   { id: "park", emoji: "🌿", label: "Parks" }, { id: "viewpoint", emoji: "🏞️", label: "Viewpoints" },
 ]
 const TRANSPORTS = [{ id: "car", emoji: "🚗", label: "Car" }, { id: "bike", emoji: "🏍️", label: "Bike" }, { id: "bus", emoji: "🚌", label: "Bus" }, { id: "auto", emoji: "🛺", label: "Auto" }, { id: "walking", emoji: "🚶", label: "Walking" }]
+const PLACE_TYPES = [
+  { id: "top_rated", emoji: "⭐", label: "Top Rated", desc: "Highest-rated places in the city" },
+  { id: "must_visit", emoji: "🎯", label: "Must Visit", desc: "Iconic spots everyone recommends" },
+  { id: "seasonal", emoji: "🌧️", label: "Seasonal", desc: "Best right now — monsoon/season picks" },
+  { id: "hidden_gems", emoji: "💎", label: "Hidden Gems", desc: "Underrated spots loved by locals" },
+  { id: "offbeat", emoji: "🗺️", label: "Off-beat", desc: "Away from tourist crowds" },
+  { id: "instagrammable", emoji: "📸", label: "Photo-worthy", desc: "Most photogenic spots" },
+]
 
-const STEPS = ["Location & Mode", "Budget & Time", "Interests", "Transport"]
+const STEPS = ["Location & Mode", "Budget & Time", "Interests", "Place Types", "Transport"]
 
 export default function Planner() {
   const [params] = useSearchParams()
@@ -45,6 +53,7 @@ export default function Planner() {
     budget: 1000,
     hours: 6,
     interests: ["beach", "heritage"],
+    placeTypes: ["must_visit"],
     transport: "bike",
     startTime: "09:00",
   })
@@ -69,13 +78,17 @@ export default function Planner() {
     setForm(f => ({ ...f, interests: f.interests.includes(id) ? f.interests.filter(x => x !== id) : [...f.interests, id] }))
   }
 
+  const togglePlaceType = (id) => {
+    setForm(f => ({ ...f, placeTypes: f.placeTypes.includes(id) ? f.placeTypes.filter(x => x !== id) : [...f.placeTypes, id] }))
+  }
+
   const handleGenerate = async () => {
     if (!form.city.trim()) { showToast("Please enter a city name", "error"); return }
     if (form.interests.length === 0) { showToast("Please select at least one interest", "error"); return }
     setLoading(true)
     setTrailLoading(true)
     try {
-      const res = await generateTrail({ city: form.city.trim(), available_hours: form.hours, budget_inr: form.budget, interests: form.interests, transport_mode: form.transport, start_time: form.startTime })
+      const res = await generateTrail({ city: form.city.trim(), available_hours: form.hours, budget_inr: form.budget, interests: form.interests, place_types: form.placeTypes, transport_mode: form.transport, start_time: form.startTime })
       setTrailResult(res.data)
       navigate("/itinerary")
     } catch (e) {
@@ -231,6 +244,24 @@ export default function Planner() {
 
             {step === 3 && (
               <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+                <label className="block text-sm font-semibold text-charcoal mb-1">🏷️ Place Types</label>
+                <p className="text-muted text-xs mb-4">What kind of places do you want in your itinerary? Select all that apply.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {PLACE_TYPES.map(pt => (
+                    <button key={pt.id} onClick={() => togglePlaceType(pt.id)}
+                      className={clsx("flex flex-col items-center gap-1.5 p-4 rounded-xl border transition-all text-center", form.placeTypes.includes(pt.id) ? "border-saffron bg-saffron/10" : "border-border hover:border-saffron/40")}>
+                      <span className="text-2xl">{pt.emoji}</span>
+                      <span className={clsx("text-xs font-semibold", form.placeTypes.includes(pt.id) ? "text-saffron" : "text-charcoal")}>{pt.label}</span>
+                      <span className="text-[10px] text-muted leading-tight">{pt.desc}</span>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted mt-4">{form.placeTypes.length} type{form.placeTypes.length !== 1 ? 's' : ''} selected</p>
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                 <label className="block text-sm font-semibold text-charcoal mb-1">🚗 Preferred Transport</label>
                 <p className="text-muted text-xs mb-4">This determines your travel cost and time estimates.</p>
                 <div className="grid grid-cols-5 gap-3 mb-8">
@@ -245,9 +276,8 @@ export default function Planner() {
                 <div className="bg-sand rounded-2xl p-5 border border-border">
                   <h3 className="font-display font-semibold text-charcoal mb-3">Journey Summary</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    {[
-                      ["📍 City", form.city], ["💰 Budget", `₹${form.budget}`], ["⏱️ Time", `${form.hours} hrs`], ["🚗 Transport", form.transport],
-                      ["🎯 Interests", form.interests.length + " selected"], ["⏰ Depart", form.startTime],
+                    {                    [["📍 City", form.city], ["💰 Budget", `₹${form.budget}`], ["⏱️ Time", `${form.hours} hrs`], ["🚗 Transport", form.transport],
+                      ["🎯 Interests", form.interests.length + " selected"], ["🏷️ Place Types", form.placeTypes.length + " selected"], ["⏰ Depart", form.startTime],
                     ].map(([k, v]) => (
                       <div key={k} className="flex justify-between border-b border-border/50 pb-2 last:border-0">
                         <span className="text-muted">{k}</span>

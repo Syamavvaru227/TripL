@@ -8,8 +8,8 @@ import useAppStore from "../../store/useAppStore"
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({ iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png", iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png", shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png" })
 
-const CAT_COLORS = { heritage: "#C2410C", beach: "#006B75", nature: "#15803D", religious: "#E8621A", park: "#15803D", food: "#E8621A", cultural: "#006B75", viewpoint: "#1E1B4B", family: "#15803D", shopping: "#C2410C" }
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️" }
+const CAT_COLORS = { heritage: "#C2410C", beach: "#006B75", nature: "#15803D", religious: "#E8621A", park: "#15803D", food: "#E8621A", cultural: "#006B75", viewpoint: "#1E1B4B", family: "#15803D", shopping: "#C2410C", other: "#6B7280" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️", other: "📌" }
 
 const createCustomIcon = (color, emoji, isHovered) => L.divIcon({
   html: `<div style="background:${color};width:${isHovered?44:36}px;height:${isHovered?44:36}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);border:2px solid white;transition:all 0.2s">
@@ -64,7 +64,7 @@ export default function MapView({ center, places, onPlaceClick }) {
           return (
             <Marker key={place.id} position={[place.latitude, place.longitude]}
               icon={createCustomIcon(color, emoji, isHovered)}
-              eventHandlers={{ click: () => { onPlaceClick?.(place); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } }) } }}>
+              eventHandlers={{ click: () => { onPlaceClick?.(place); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}&city=${encodeURIComponent(place.city || '')}&cat=${encodeURIComponent(catKey)}&lat=${place.latitude || ''}&lng=${place.longitude || ''}${place.image_url ? '&img=' + encodeURIComponent(place.image_url) : ''}`, { state: { place } }) } }}>
               <Popup>
                 <div className="p-3 min-w-[180px]">
                   <div className="flex items-start gap-2 mb-2">
@@ -78,7 +78,7 @@ export default function MapView({ center, places, onPlaceClick }) {
                     <span>⭐ {place.rating?.toFixed(1)}</span>
                     <span>📍 {place.distance_km?.toFixed(1)} km</span>
                   </div>
-                  <button onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } })}
+                  <button onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}&city=${encodeURIComponent(place.city || '')}&cat=${encodeURIComponent(catKey)}&lat=${place.latitude || ''}&lng=${place.longitude || ''}${place.image_url ? '&img=' + encodeURIComponent(place.image_url) : ''}`, { state: { place } })}
                     className="w-full bg-saffron text-white text-xs font-semibold py-1.5 rounded-lg hover:bg-saffron-dark transition-colors">
                     Explore →
                   </button>

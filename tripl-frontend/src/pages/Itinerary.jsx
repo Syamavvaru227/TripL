@@ -7,7 +7,7 @@ import { Share2, Bookmark, Navigation, ChevronRight } from "lucide-react"
 import { saveTrail } from "../api/trail"
 import { showToast } from "../components/ui/Toast"
 
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️", other: "📌" }
 const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron" }
 const PLACEHOLDER_GRADIENTS = ["from-peacock/70 to-indigo", "from-saffron/70 to-terracotta", "from-emerald/70 to-peacock", "from-terracotta/70 to-saffron"]
 
@@ -111,7 +111,7 @@ export default function Itinerary() {
                     <span className="text-xl">{emoji}</span>
                   </div>
                 </div>
-                <div className="flex-1 card p-4 hover:shadow-card-hover transition-all cursor-pointer" onClick={() => navigate(`/place/${stop.place.id}?name=${encodeURIComponent(stop.place.name)}`, { state: { place: stop.place } })}>
+                <div className="flex-1 card p-4 hover:shadow-card-hover transition-all cursor-pointer" onClick={() => navigate(`/place/${stop.place.id}?name=${encodeURIComponent(stop.place.name)}&city=${encodeURIComponent(stop.place.city || trail.city || '')}&cat=${encodeURIComponent(stop.category?.name?.toLowerCase() || 'heritage')}&lat=${stop.place.latitude || ''}&lng=${stop.place.longitude || ''}${stop.place.image_url ? '&img=' + encodeURIComponent(stop.place.image_url) : ''}`, { state: { place: stop.place } })}>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
                       <div className="text-xs text-muted font-medium mb-0.5">Stop {stop.order}</div>

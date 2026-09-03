@@ -8,7 +8,7 @@ import { Bookmark, MapPin, Star, Clock, ChevronRight, X } from "lucide-react"
 
 const TABS = ["Saved Places", "Saved Itineraries"]
 const GRADIENTS = ["from-peacock/80 to-indigo", "from-saffron/80 to-terracotta", "from-emerald/80 to-peacock"]
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️", other: "📌" }
 
 export default function Saved() {
   const [tab, setTab] = useState(0)

@@ -114,6 +114,40 @@ async def calculate_travel(
     return {"distance_km": round(distance_km, 2), "duration_min": duration_min, "cost": cost, "icon": t["icon"]}
 
 
+def place_type_score(place: Any, place_types: List[str], max_rating: float = 5.0) -> float:
+    """Score a place based on selected place type filters."""
+    if not place_types:
+        return 0.5  # neutral if no filter
+
+    score = 0.0
+    rating = float(getattr(place, 'rating', 3.0))
+    dist = float(getattr(place, 'distance_km', 15.0))
+    entry = float(getattr(place, 'entry_fee', 0))
+
+    if 'top_rated' in place_types:
+        score += normalize(rating, 0, max_rating) * 0.3
+    if 'must_visit' in place_types:
+        # Iconic = high rating + well-known (low distance from city center)
+        score += (normalize(rating, 0, max_rating) * 0.5 + (1 - normalize(dist, 0, 30)) * 0.5) * 0.3
+    if 'hidden_gems' in place_types:
+        # Hidden gems = good rating but farther from center + cheap
+        score += ((1 - normalize(rating, 0, max_rating)) * 0.3 + normalize(dist, 0, 30) * 0.4 + (1 - normalize(entry, 0, 500)) * 0.3) * 0.3
+    if 'offbeat' in place_types:
+        # Offbeat = farther from center + lower crowds implied by distance
+        score += (normalize(dist, 5, 30) * 0.6 + (1 - normalize(entry, 0, 500)) * 0.4) * 0.3
+    if 'seasonal' in place_types:
+        # Seasonal = boost nature/park/beach, currently just boost all equally
+        score += 0.2
+    if 'instagrammable' in place_types:
+        # Photo-worthy = high rating + viewpoints/nature/heritage
+        cat = str(getattr(place, 'category_name', '') or '')
+        cat_id = getattr(place, 'category_id', None)
+        is_photogenic = any(w in cat.lower() for w in ('viewpoint', 'beach', 'nature', 'heritage', 'park'))
+        score += (normalize(rating, 0, max_rating) * 0.5 + (0.5 if is_photogenic else 0.1) * 0.5) * 0.3
+
+    return min(1.0, score)
+
+
 async def generate_trail(
     places: List[Any],
     categories: Dict[int, Any],
@@ -126,6 +160,7 @@ async def generate_trail(
     start_time: str = "09:00",
     origin_lat: Optional[float] = None,
     origin_lon: Optional[float] = None,
+    place_types: List[str] = [],
 ) -> Dict:
     if not places:
         return {"stops": [], "total_cost_inr": 0, "total_duration_minutes": 0}
@@ -148,13 +183,14 @@ async def generate_trail(
         dist_km = getattr(p, "distance_km", 15.0)
         cat_name = categories.get(p.category_id, {}).get("name", "") if p.category_id else ""
 
-        s_interest  = interest_match_score(cat_name, interests) * 0.35
-        s_rating    = normalize(float(p.rating), 0, 5) * 0.25
-        s_proximity = (1 - normalize(float(dist_km), 0, max_dist)) * 0.20
+        s_place_type = place_type_score(p, place_types) * 0.20
+        s_interest  = interest_match_score(cat_name, interests) * 0.25
+        s_rating    = normalize(float(p.rating), 0, 5) * 0.20
+        s_proximity = (1 - normalize(float(dist_km), 0, max_dist)) * 0.15
         s_cost      = (1 - normalize(float(p.entry_fee), 0, max_fee)) * 0.10
         s_time      = (1 - normalize(p.avg_visit_duration, 30, 360)) * 0.10
 
-        score = s_interest + s_rating + s_proximity + s_cost + s_time
+        score = s_interest + s_place_type + s_rating + s_proximity + s_cost + s_time
         scored.append((score, p))
 
     scored.sort(key=lambda x: x[0], reverse=True)

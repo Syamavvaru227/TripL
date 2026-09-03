@@ -16,6 +16,7 @@ const CATEGORIES = [
   { id: "shopping", label: "Shopping", emoji: "🛍️" },
   { id: "family", label: "Family", emoji: "👨‍👩‍👧" },
   { id: "park", label: "Parks", emoji: "🌿" },
+  { id: "other", label: "Other", emoji: "📌" },
 ]
 
 export default function FilterPanel({ onFilterChange }) {

@@ -5,8 +5,8 @@ import useAppStore from "../../store/useAppStore"
 import Badge from "../ui/Badge"
 import { showToast } from "../ui/Toast"
 
-const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron", cultural: "peacock", viewpoint: "peacock", family: "emerald", shopping: "terracotta" }
-const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️" }
+const CAT_COLORS = { heritage: "terracotta", beach: "peacock", nature: "emerald", religious: "saffron", park: "emerald", food: "saffron", cultural: "peacock", viewpoint: "peacock", family: "emerald", shopping: "terracotta", other: "muted" }
+const CAT_EMOJI = { heritage: "🏛️", beach: "🏖️", nature: "🌳", religious: "🛕", park: "🌿", food: "🍛", cultural: "🎭", viewpoint: "🏞️", family: "👨‍👩‍👧", shopping: "🛍️", other: "📌" }
 const PLACEHOLDER_GRADIENTS = ["from-peacock/80 to-indigo", "from-saffron/80 to-terracotta", "from-emerald/80 to-peacock", "from-terracotta/80 to-saffron", "from-indigo/80 to-peacock"]
 
 export default function PlaceCard({ place, index = 0 }) {
@@ -27,7 +27,7 @@ export default function PlaceCard({ place, index = 0 }) {
   return (
     <motion.div
       className="card cursor-pointer group"
-      onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } })}
+      onClick={() => navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}&city=${encodeURIComponent(place.city || '')}&cat=${encodeURIComponent(catKey)}&lat=${place.latitude || ''}&lng=${place.longitude || ''}${place.image_url ? '&img=' + encodeURIComponent(place.image_url) : ''}`, { state: { place } })}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05, type: "spring", stiffness: 300, damping: 25 }}
@@ -77,7 +77,7 @@ export default function PlaceCard({ place, index = 0 }) {
           </div>
         )}
         <div className="mt-3 pt-3 border-t border-border flex gap-2">
-          <button onClick={e => { e.stopPropagation(); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}`, { state: { place } }) }}
+          <button onClick={e => { e.stopPropagation(); navigate(`/place/${place.id}?name=${encodeURIComponent(place.name)}&city=${encodeURIComponent(place.city || '')}&cat=${encodeURIComponent(catKey)}&lat=${place.latitude || ''}&lng=${place.longitude || ''}${place.image_url ? '&img=' + encodeURIComponent(place.image_url) : ''}`, { state: { place } }) }}
             className="flex-1 bg-saffron/10 text-saffron text-xs font-semibold py-2 rounded-lg hover:bg-saffron hover:text-white transition-colors">
             Explore Destination
           </button>
