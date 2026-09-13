@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 # Directory to store emails in dev mode (when SMTP is not configured)
 DEV_EMAIL_DIR = Path(__file__).parent.parent.parent / "dev_emails"
 
+# Public URL of the app, used for links inside transactional emails.
+APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:5173").rstrip("/")
+
 
 def _welcome_html(full_name: str) -> str:
     """Return a beautiful HTML welcome email body."""
@@ -95,7 +98,7 @@ def _welcome_html(full_name: str) -> str:
     </div>
 
     <div style="text-align: center;">
-      <a href="http://localhost:5173/explore?city=Visakhapatnam" class="cta-button">
+      <a href="{APP_BASE_URL}/explore?city=Visakhapatnam" class="cta-button">
         Start Exploring →
       </a>
     </div>
@@ -108,7 +111,7 @@ def _welcome_html(full_name: str) -> str:
 
   <div class="footer">
     <p>Made with ❤️ for Smart India Hackathon 2025</p>
-    <p><a href="http://localhost:5173">TripL</a> — Explore India. Understand India. Experience India.</p>
+    <p><a href="{APP_BASE_URL}">TripL</a> — Explore India. Understand India. Experience India.</p>
     <p style="margin-top: 8px;">This email was sent to you because you registered on TripL.</p>
   </div>
 </div>

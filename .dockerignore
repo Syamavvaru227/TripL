@@ -1,0 +1,39 @@
+# ── Dependencies (installed inside the image, never copied in) ──────────
+node_modules/
+**/node_modules/
+tripl-backend/venv/
+tripl-backend/app/venv/
+**/__pycache__/
+*.pyc
+
+# ── Secrets (never bake a local .env into an image) ─────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Build output (produced inside the image) ────────────────────────────
+tripl-backend/static/
+dist/
+build/
+*.egg-info/
+
+# ── Local databases and logs ────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.err
+dev_emails/
+
+# ── Tooling / docs not needed at runtime ────────────────────────────────
+.git
+.gitignore
+.freebuff/
+.pnpm-store/
+.vscode/
+.idea/
+docs/
+scripts/
+*.pptx
+*.bat
+*.ps1

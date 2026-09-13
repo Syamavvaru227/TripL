@@ -86,7 +86,7 @@ export default function PlaceDetail() {
       })
 
       // Then try to fetch Wikipedia history in background
-      fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/places/wiki-history?name=${encodeURIComponent(nameParam)}`)
+      fetch(`${import.meta.env.VITE_API_URL || ""}/api/places/wiki-history?name=${encodeURIComponent(nameParam)}`)
         .then(r => r.json())
         .then(data => {
           if (data && data.title) {

@@ -138,15 +138,27 @@ Weighted scoring for each candidate place:
 
 ## 📦 Deployment
 
-### Option 1: Render (Recommended — Free)
+The whole app ships as **one Docker container** — FastAPI serves both the API and
+the built React SPA — so there is a single public URL and no CORS setup.
+Full walkthrough, verification checklist and troubleshooting: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
-1. Push code to GitHub
-2. Go to [render.com](https://render.com) → New Web Service
-3. Select `Syamavvaru227/TripL`
-4. Set **Runtime** to Docker, **Dockerfile** to `./Dockerfile`
-5. Click Deploy
+### Option 1: Render Blueprint (recommended — free)
 
-Your app will be live at `https://tripl.onrender.com`
+The repo contains `render.yaml`, so Render configures the service for you.
+
+1. Push the code to GitHub.
+2. On [render.com](https://render.com): **New** → **Blueprint** → select this repo.
+3. When prompted, set **`DATABASE_URL`** to a MySQL connection string:
+   `mysql+pymysql://USER:PASSWORD@HOST:PORT/DBNAME` (URL-encode the password).
+   Without this the app falls back to SQLite, and Render's free disk is
+   ephemeral — accounts and saved itineraries would reset on every redeploy.
+4. Confirm `JWT_SECRET_KEY` is auto-generated, then Apply.
+
+Your app will be live at `https://tripl.onrender.com`.
+
+> Free instances sleep after 15 idle minutes (~60 s cold start), and the first
+> place query for a city takes 13–22 s while it fetches live data. Warm your demo
+> city before presenting.
 
 ### Option 2: Railway
 
@@ -157,11 +169,18 @@ Your app will be live at `https://tripl.onrender.com`
    - `DATABASE_URL` = your MySQL connection string
    - `JWT_SECRET_KEY` = random secret string
 
-### Option 3: Docker
+### Option 3: Docker (any host)
+
+The Dockerfile is host-agnostic — it binds the `PORT` environment variable, so it
+works on Railway, Fly.io, Koyeb, a VPS, or Hugging Face Spaces.
 
 ```bash
 docker build -t tripl .
-docker run -p 8000:8000 tripl
+docker run -p 8000:8000 \
+  -e DATABASE_URL="mysql+pymysql://user:pass@host:3306/tripl_db" \
+  -e JWT_SECRET_KEY="a-long-random-secret" \
+  tripl
+# → http://localhost:8000
 ```
 
 ---

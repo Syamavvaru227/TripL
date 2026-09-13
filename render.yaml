@@ -3,12 +3,23 @@ services:
     name: tripl
     runtime: docker
     dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
     envVars:
       - key: APP_ENV
         value: production
-      - key: CORS_ORIGINS
+      # Paste the managed MySQL URL here (Render prompts for it on first deploy).
+      # Format: mysql+pymysql://USER:PASSWORD@HOST:PORT/DBNAME
+      - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET_KEY
         generateValue: true
-    plan: free
-    healthCheckPath: /api/health
+      # Used for links inside transactional emails; update if Render assigns a
+      # different hostname than the service name.
+      - key: APP_BASE_URL
+        value: https://tripl.onrender.com
+      - key: CORS_ORIGINS
+        value: https://tripl.onrender.com
+      # Keeps demo logins valid for a full day instead of expiring after 60 min.
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"

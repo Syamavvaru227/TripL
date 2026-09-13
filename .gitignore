@@ -28,6 +28,7 @@ Thumbs.db
 
 # Logs
 *.log
+*.err
 /tmp/
 
 # Dev emails
