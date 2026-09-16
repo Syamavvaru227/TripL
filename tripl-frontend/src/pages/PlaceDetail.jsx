@@ -137,7 +137,7 @@ export default function PlaceDetail() {
   const cityCoords = CITY_COORDS[place.city] || [17.6868, 83.2185]
 
   return (
-    <div className="min-h-screen bg-ivory pb-20">
+    <div className="min-h-screen bg-ivory">
       {/* Hero */}
       <div className="relative h-72 sm:h-96 overflow-hidden">
         {place.image_url ? (
@@ -164,10 +164,10 @@ export default function PlaceDetail() {
           </div>
         </div>
         {/* Bottom info */}
-        <div className="absolute bottom-6 left-6 right-6">
+        <div className="absolute bottom-5 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6">
           <Badge color={catColor} className="mb-2">{catEmoji} {place.category?.name || "Place"}</Badge>
-          <h1 className="font-display font-bold text-3xl sm:text-4xl text-white mb-1">{place.name}</h1>
-          <div className="flex items-center gap-3 text-white/80 text-sm">
+          <h1 className="font-display font-bold text-2xl sm:text-4xl text-white mb-1">{place.name}</h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/80 text-sm">
             <span className="flex items-center gap-1"><MapPin size={14} />{place.city}</span>
             <span className="flex items-center gap-1"><Star size={14} className="text-amber-400" />{place.rating?.toFixed(1)}</span>
             {place.opening_time && <span className="flex items-center gap-1"><Clock size={14} />{place.opening_time} – {place.closing_time}</span>}
@@ -181,14 +181,14 @@ export default function PlaceDetail() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <div className="max-w-5xl mx-auto px-4 py-4 flex gap-6 overflow-x-auto scrollbar-hide">
+        <div className="max-w-5xl mx-auto px-4 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { icon: "⭐", label: "Rating", val: `${place.rating?.toFixed(1)} / 5.0` },
             { icon: "🕐", label: "Visit Duration", val: `${place.avg_visit_duration || 60} min` },
             { icon: "💰", label: "Entry Fee", val: place.entry_fee === 0 ? "Free" : `₹${place.entry_fee}` },
             { icon: "🕒", label: "Opens", val: place.opening_time || "All day" },
           ].map(s => (
-            <div key={s.label} className="flex flex-col items-center text-center shrink-0 px-3 border-r border-border last:border-0">
+            <div key={s.label} className="flex flex-col items-center text-center px-2 sm:px-3 sm:border-r border-border last:border-0">
               <span className="text-xl mb-0.5">{s.icon}</span>
               <span className="font-bold text-charcoal text-sm">{s.val}</span>
               <span className="text-muted text-xs">{s.label}</span>
@@ -241,10 +241,10 @@ export default function PlaceDetail() {
 
       {/* Tabs */}
       <div className="bg-white border-b border-border sticky top-16 z-10">
-        <div className="max-w-5xl mx-auto px-4 flex gap-0 overflow-x-auto scrollbar-hide">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 sm:flex px-4">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`py-4 px-5 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? "border-saffron text-saffron" : "border-transparent text-muted hover:text-charcoal"}`}>
+              className={`py-3 sm:py-4 px-2 sm:px-5 font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? "border-saffron text-saffron" : "border-transparent text-muted hover:text-charcoal"}`}>
               {t.label}
             </button>
           ))}
@@ -264,11 +264,11 @@ export default function PlaceDetail() {
         {tab === "overview" && (
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h2 className="font-display font-semibold text-xl text-charcoal mb-3">About {place.name}</h2>
                 <p className="text-muted leading-relaxed">{place.description || "A wonderful destination offering a unique blend of natural beauty and cultural richness. This place promises memorable experiences for every type of traveler, from history enthusiasts to nature lovers."}</p>
               </div>
-              <div className="card p-6">
+              <div className="card p-4 sm:p-6">
                 <h3 className="font-display font-semibold text-charcoal mb-3">Location & Address</h3>
                 <p className="text-muted text-sm mb-3 flex items-start gap-2"><MapPin size={14} className="text-saffron mt-0.5 shrink-0" />{place.address || `${place.city}, India`}</p>
                 <div className="h-40 bg-sand rounded-xl flex items-center justify-center text-muted text-sm">

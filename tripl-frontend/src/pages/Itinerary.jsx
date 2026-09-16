@@ -33,9 +33,9 @@ export default function Itinerary() {
   }
 
   return (
-    <div className="min-h-screen bg-ivory pb-20">
+    <div className="min-h-screen bg-ivory">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo to-peacock text-white py-12 px-4">
+      <div className="bg-gradient-to-br from-indigo to-peacock text-white py-8 sm:py-12 px-4">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-2 text-white/60 text-sm mb-4 cursor-pointer hover:text-white transition-colors" onClick={() => navigate("/plan")}>
             ← Edit Preferences
@@ -45,7 +45,7 @@ export default function Itinerary() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sm mb-3">
                 ✨ AI-Generated Itinerary
               </div>
-              <h1 className="font-display font-bold text-3xl sm:text-4xl mb-1">Your {trail.total_duration_minutes >= 480 ? "Full Day" : `${Math.round(trail.total_duration_minutes / 60)}-Hour`} Journey</h1>
+              <h1 className="font-display font-bold text-2xl sm:text-4xl mb-1">Your {trail.total_duration_minutes >= 480 ? "Full Day" : `${Math.round(trail.total_duration_minutes / 60)}-Hour`} Journey</h1>
               <p className="text-white/70">{trail.city} · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
             </div>
             <div className="flex gap-2">
@@ -54,7 +54,7 @@ export default function Itinerary() {
             </div>
           </div>
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mt-8 bg-white/10 rounded-2xl p-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 sm:mt-8 bg-white/10 rounded-2xl p-4 sm:p-5">
             {[
               { emoji: "📍", val: trail.total_places, label: "Places" },
               { emoji: "⏱️", val: `${Math.round(trail.total_duration_minutes / 60)}h ${trail.total_duration_minutes % 60}m`, label: "Duration" },
@@ -63,7 +63,7 @@ export default function Itinerary() {
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className="text-xl mb-0.5">{s.emoji}</div>
-                <div className="font-display font-bold text-lg text-white">{s.val}</div>
+                <div className="font-display font-bold text-base sm:text-lg text-white">{s.val}</div>
                 <div className="text-white/50 text-xs">{s.label}</div>
               </div>
             ))}
@@ -120,7 +120,7 @@ export default function Itinerary() {
                     </div>
                     <ChevronRight size={16} className="text-muted shrink-0 mt-1" />
                   </div>
-                  <div className="grid grid-cols-3 gap-3 text-xs text-muted border-t border-border pt-2 mt-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-muted border-t border-border pt-2 mt-2">
                     <span>⏱️ Stay {stop.stay_minutes} min</span>
                     <span>💰 ₹{Math.round(stop.cumulative_cost)}</span>
                     <span>🕐 Until {stop.departure_time}</span>
@@ -131,7 +131,7 @@ export default function Itinerary() {
                         <span>{stop.transport_icon || "🚗"}</span>
                         <span>From previous stop: {stop.travel_from_prev_minutes} min · {stop.distance_from_prev_km?.toFixed(1)} km · ₹{Math.round(stop.travel_cost_inr)}</span>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <a href={`https://m.uber.com/go/search-pickup?pickup=${encodeURIComponent(trail.stops?.[i-1]?.place?.name || trail.city || "")}&dropoff=${encodeURIComponent(stop.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
                           className="text-[10px] bg-black text-white px-2 py-1 rounded-full hover:opacity-80">Uber</a>
                         <a href={`https://book.olacabs.com/?pickup=${encodeURIComponent(trail.stops?.[i-1]?.place?.name || trail.city || "")}&drop=${encodeURIComponent(stop.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
@@ -210,7 +210,7 @@ export default function Itinerary() {
           </div>
           <div className="border-t border-border pt-4">
             <p className="text-muted text-sm mb-3">Book your complete trip ride:</p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <a href={`https://m.uber.com/go/search-pickup?pickup=${encodeURIComponent(trail.city || "")}&dropoff=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
                 🚗 Book Uber — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 14)}

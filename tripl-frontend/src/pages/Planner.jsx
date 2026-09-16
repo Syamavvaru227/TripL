@@ -107,19 +107,19 @@ export default function Planner() {
   )
 
   return (
-    <div className="min-h-screen bg-ivory py-10">
+    <div className="min-h-screen bg-ivory py-6 sm:py-10">
       <div className="max-w-2xl mx-auto px-4">
-        <motion.div className="text-center mb-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div className="text-center mb-6 sm:mb-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-saffron/10 text-saffron text-sm font-semibold mb-4">
             ✨ AI Journey Planner
           </div>
-          <h1 className="font-display font-bold text-4xl text-indigo mb-2">Plan Your Perfect Journey</h1>
+          <h1 className="font-display font-bold text-3xl sm:text-4xl text-indigo mb-2">Plan Your Perfect Journey</h1>
           <p className="text-muted">Tell us your preferences. We'll create a smart, optimized itinerary just for you.</p>
         </motion.div>
 
-        <div className="flex items-center justify-center gap-3 mb-10">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-3 mb-6 sm:mb-10">
           {STEPS.map((s, i) => (
-            <div key={s} className="flex items-center gap-3">
+            <div key={s} className="flex items-center gap-1.5 sm:gap-3">
               <motion.div className={clsx("relative flex flex-col items-center cursor-pointer", i <= step ? "opacity-100" : "opacity-40")} onClick={() => i < step && setStep(i)} whileTap={{ scale: 0.9 }}>
                 <div className={clsx("w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm border-2 transition-all duration-200",
                   i < step ? "bg-saffron border-saffron text-white" : i === step ? "border-saffron text-saffron bg-saffron/10" : "border-border text-muted bg-white")}>
@@ -127,12 +127,12 @@ export default function Planner() {
                 </div>
                 <span className="text-xs mt-1 font-medium text-muted hidden sm:block">{s}</span>
               </motion.div>
-              {i < STEPS.length - 1 && <div className={clsx("h-px w-8 transition-colors", i < step ? "bg-saffron" : "bg-border")} />}
+              {i < STEPS.length - 1 && <div className={clsx("h-px w-3 sm:w-8 transition-colors", i < step ? "bg-saffron" : "bg-border")} />}
             </div>
           ))}
         </div>
 
-        <motion.div className="card p-8" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        <motion.div className="card p-4 sm:p-8" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
           <AnimatePresence mode="wait">
             {step === 0 && (
               <motion.div key="step0" className="space-y-6" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
@@ -200,7 +200,7 @@ export default function Planner() {
                 <div>
                   <label className="block text-sm font-semibold text-charcoal mb-1">💰 Total Budget</label>
                   <p className="text-muted text-xs mb-4">Includes transport + entry fees</p>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {BUDGETS.map(b => (
                       <button key={b.val} onClick={() => setForm(f => ({ ...f, budget: b.val }))}
                         className={clsx("flex flex-col items-center p-3 rounded-xl border transition-all", form.budget === b.val ? "border-saffron bg-saffron/5" : "border-border hover:border-saffron/40")}>
@@ -213,7 +213,7 @@ export default function Planner() {
                 <div>
                   <label className="block text-sm font-semibold text-charcoal mb-1">⏱️ Available Time</label>
                   <p className="text-muted text-xs mb-4">How long do you have today?</p>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {TIMES.map(t => (
                       <button key={t.val} onClick={() => setForm(f => ({ ...f, hours: t.val }))}
                         className={clsx("px-4 py-2 rounded-xl border text-sm font-medium transition-all", form.hours === t.val ? "border-saffron bg-saffron text-white" : "border-border text-charcoal hover:border-saffron/40")}>
@@ -229,7 +229,7 @@ export default function Planner() {
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                 <label className="block text-sm font-semibold text-charcoal mb-1">🎯 Your Interests</label>
                 <p className="text-muted text-xs mb-4">Select all that apply — the more you choose, the better your trail.</p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {INTERESTS.map(i => (
                     <button key={i.id} onClick={() => toggleInterest(i.id)}
                       className={clsx("flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all", form.interests.includes(i.id) ? "border-saffron bg-saffron/10" : "border-border hover:border-saffron/40")}>
@@ -264,7 +264,7 @@ export default function Planner() {
               <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
                 <label className="block text-sm font-semibold text-charcoal mb-1">🚗 Preferred Transport</label>
                 <p className="text-muted text-xs mb-4">This determines your travel cost and time estimates.</p>
-                <div className="grid grid-cols-5 gap-3 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8">
                   {TRANSPORTS.map(t => (
                     <button key={t.id} onClick={() => setForm(f => ({ ...f, transport: t.id }))}
                       className={clsx("flex flex-col items-center gap-2 p-4 rounded-xl border transition-all", form.transport === t.id ? "border-saffron bg-saffron/10" : "border-border hover:border-saffron/40")}>
