@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { login, register, sendOtp, checkPhone, registerPhone, loginPhone, forgotPassword } from "../api/auth"
 import useAuthStore from "../store/useAuthStore"
 import { showToast } from "../components/ui/Toast"
+import ToastContainer from "../components/ui/Toast"
 import { Eye, EyeOff, Mail, Lock, User, Phone, CheckCircle, Loader2, KeyRound } from "lucide-react"
 
 export default function Auth() {
@@ -448,6 +449,7 @@ export default function Auth() {
           </div>
         </div>
       </motion.div>
+      <ToastContainer />
     </div>
   )
 }
