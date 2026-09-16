@@ -63,11 +63,10 @@ def check_phone(payload: CheckPhoneRequest, db: Session = Depends(get_db)):
 
 @router.post("/send-otp")
 def send_otp(payload: SendOtpRequest):
-    otp = generate_otp(payload.phone)
+    generate_otp(payload.phone)
     return {
         "message": f"OTP sent to {payload.phone}",
         "phone": payload.phone,
-        "otp_debug": otp,
     }
 
 

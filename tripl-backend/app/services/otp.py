@@ -1,4 +1,4 @@
-import random
+import secrets
 import time
 from typing import Optional
 
@@ -7,7 +7,7 @@ OTP_EXPIRY_SECONDS = 300  # 5 minutes
 
 
 def generate_otp(phone: str) -> str:
-    otp = f"{random.randint(100000, 999999)}"
+    otp = f"{secrets.randbelow(900_000) + 100_000}"
     _otp_store[phone] = {"otp": otp, "created_at": time.time()}
     return otp
 

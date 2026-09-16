@@ -89,7 +89,7 @@ export default function PlaceDetail() {
       fetch(`${import.meta.env.VITE_API_URL || ""}/api/places/wiki-history?name=${encodeURIComponent(nameParam)}`)
         .then(r => r.json())
         .then(data => {
-          if (data && data.title) {
+          if (data && data.article_title) {
             setPlace(prev => ({
               ...prev,
               description: data.summary || prev.description,

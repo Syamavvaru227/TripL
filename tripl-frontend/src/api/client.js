@@ -1,6 +1,10 @@
 ﻿import axios from "axios"
-
-const client = axios.create({ baseURL: "/api", timeout: 60000 })
+const client = axios.create({
+  // A blank VITE_API_URL means the frontend and API share the same origin.
+  // This is the production layout used by the Docker/Render deployment.
+  baseURL: `${import.meta.env.VITE_API_URL || ""}/api`,
+  timeout: 60000,
+})
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("tripl_token")
