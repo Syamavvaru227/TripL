@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom"
 import Navbar from "./components/layout/Navbar"
 import Footer from "./components/layout/Footer"
 import MobileNav from "./components/layout/MobileNav"
@@ -12,6 +12,7 @@ import Saved from "./pages/Saved"
 import Profile from "./pages/Profile"
 import Auth from "./pages/Auth"
 import ResponsibleTravel from "./pages/ResponsibleTravel"
+import useAuthStore from "./store/useAuthStore"
 
 function Layout({ children, noFooter = false }) {
   return (
@@ -25,6 +26,11 @@ function Layout({ children, noFooter = false }) {
   )
 }
 
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuthStore()
+  return isAuthenticated ? children : <Navigate to="/auth" replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -32,7 +38,7 @@ export default function App() {
         <Route path="/" element={<Layout><Landing /></Layout>} />
         <Route path="/explore" element={<Layout noFooter><Explore /></Layout>} />
         <Route path="/place/:id" element={<Layout><PlaceDetail /></Layout>} />
-        <Route path="/plan" element={<Layout><Planner /></Layout>} />
+        <Route path="/plan" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
         <Route path="/itinerary" element={<Layout><Itinerary /></Layout>} />
         <Route path="/saved" element={<Layout><Saved /></Layout>} />
         <Route path="/profile" element={<Layout><Profile /></Layout>} />
