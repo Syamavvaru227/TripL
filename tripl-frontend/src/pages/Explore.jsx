@@ -52,6 +52,16 @@ const CITY_COORDS = {
   Pondicherry: [11.9416, 79.8083],
 }
 
+const MOBILE_CATEGORIES = [
+  { id: "all", label: "All", emoji: "🗺️" },
+  { id: "heritage", label: "Heritage", emoji: "🏛️" },
+  { id: "beach", label: "Beaches", emoji: "🏖️" },
+  { id: "nature", label: "Nature", emoji: "🌳" },
+  { id: "religious", label: "Religious", emoji: "🛕" },
+  { id: "viewpoint", label: "Views", emoji: "🏞️" },
+  { id: "park", label: "Parks", emoji: "🌿" },
+]
+
 export default function Explore() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -65,7 +75,7 @@ export default function Explore() {
     latParam && lngParam ? [parseFloat(latParam), parseFloat(lngParam)] : null
   )
   const [locationLoading, setLocationLoading] = useState(false)
-  const { places, filteredPlaces, setPlaces, setFilteredPlaces, placesLoading, setPlacesLoading, placesError, setPlacesError, activeCategory, maxDistance, minRating, openNow } = useAppStore()
+  const { places, filteredPlaces, setPlaces, setFilteredPlaces, placesLoading, setPlacesLoading, placesError, setPlacesError, activeCategory, setActiveCategory, maxDistance, minRating, openNow } = useAppStore()
   const [computedCenter, setComputedCenter] = useState(null)
   const coords = liveCoords || CITY_COORDS[cityParam] || computedCenter || [17.6868, 83.2185]
 
@@ -157,19 +167,19 @@ export default function Explore() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] bg-ivory">
+    <div className="flex flex-col h-[calc(100svh-8rem)] md:h-[calc(100vh-64px)] bg-ivory">
       {/* Top bar */}
-      <div className="bg-white border-b border-border px-4 py-3 flex items-center gap-3 flex-wrap">
-        <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1 min-w-0 max-w-sm">
+      <div className="bg-white border-b border-border px-3 py-2.5 flex items-center gap-2 flex-wrap md:px-4 md:py-3 md:flex-nowrap md:gap-3">
+        <form onSubmit={handleSearch} className="flex items-center gap-2 w-full min-w-0 max-w-none md:flex-1 md:max-w-sm">
           <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2 flex-1 bg-sand/50 focus-within:border-saffron transition-colors">
             <MapPin size={14} className="text-saffron shrink-0" />
             <input value={searchInput} onChange={e => setSearchInput(e.target.value)} placeholder="Search city..." className="bg-transparent text-sm outline-none text-charcoal flex-1 min-w-0" />
             <button type="submit"><Search size={14} className="text-muted hover:text-saffron transition-colors" /></button>
           </div>
         </form>
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex w-full items-center justify-between gap-1 md:w-auto md:ml-auto md:justify-start">
           <button onClick={handleUseMyLocation} disabled={locationLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-saffron/10 text-saffron text-xs font-semibold hover:bg-saffron/20 transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-saffron/10 text-saffron text-xs font-semibold hover:bg-saffron/20 transition-colors disabled:opacity-50 sm:px-3">
             {locationLoading ? <Loader2 size={12} className="animate-spin" /> : <Navigation size={12} />}
             {locationLoading ? "Locating..." : "My Location"}
           </button>
@@ -178,6 +188,20 @@ export default function Explore() {
             <button key={v.id} onClick={() => setViewMode(v.id)}
               className={`p-2 rounded-lg flex items-center gap-0.5 transition-colors ${viewMode === v.id ? "bg-saffron text-white" : "bg-sand text-muted hover:text-charcoal"}`}>
               {v.icon}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile category rail — desktop uses the full filter panel. */}
+      <div className="md:hidden bg-white border-b border-border px-3 py-2 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 w-max">
+          {MOBILE_CATEGORIES.map(category => (
+            <button key={category.id} onClick={() => setActiveCategory(category.id)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                activeCategory === category.id ? "bg-saffron text-white" : "bg-sand text-muted"
+              }`}>
+              {category.emoji} {category.label}
             </button>
           ))}
         </div>
@@ -203,7 +227,7 @@ export default function Explore() {
 
         {/* Cards list */}
         {viewMode !== "map" && (
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+          <div className="hidden md:block flex-1 overflow-y-auto p-4 scrollbar-hide">
             {placesLoading ? (
               <LoadingMandala text="Discovering places near you..." />
             ) : !cityParam && !liveCoords ? (
@@ -245,10 +269,10 @@ export default function Explore() {
 
         {/* Mobile: stacked map + cards */}
         <div className="md:hidden flex flex-col flex-1 overflow-hidden">
-          <div className="h-56 p-2">
+          {viewMode !== "list" && <div className={`${viewMode === "map" ? "flex-1" : "h-48"} shrink-0 p-2`}>
             {!placesLoading && <MapView center={coords} places={filteredPlaces} />}
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
+          </div>}
+          {viewMode !== "map" && <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
             {placesLoading ? (
               <LoadingMandala text="Finding places..." />
             ) : !cityParam && !liveCoords ? (
@@ -277,7 +301,7 @@ export default function Explore() {
             ) : (
               filteredPlaces.map((p, i) => <div key={p.id} className="mb-3"><PlaceCard place={p} index={i} /></div>)
             )}
-          </div>
+          </div>}
         </div>
       </div>
     </div>
