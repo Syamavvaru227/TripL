@@ -13,6 +13,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [showNewPw, setShowNewPw] = useState(false)
+  const [authFeedback, setAuthFeedback] = useState("")
   const navigate = useNavigate()
   const { setToken, setUser } = useAuthStore()
 
@@ -36,7 +37,7 @@ export default function Auth() {
 
   // ── Email Auth ──────────────────────────────────────────────────────
   const handleEmailLogin = async (e) => {
-    e.preventDefault(); setLoading(true)
+    e.preventDefault(); setLoading(true); setAuthFeedback("")
     try {
       const res = await login(emailForm.email, emailForm.password)
       setToken(res.data.access_token); setUser(res.data.user)
@@ -45,16 +46,19 @@ export default function Auth() {
       if (e.response?.status === 404) {
         setAuthMode("register")
         setRegForm(f => ({ ...f, email: emailForm.email }))
+        setAuthFeedback("User is not registered. Create an account to continue.")
         showToast("User is not registered. Create an account to continue.", "info")
       } else {
-        showToast(e.response?.data?.detail || "Incorrect email or password.", "error")
+        const message = e.response?.data?.detail || "Incorrect password. Please try again."
+        setAuthFeedback(message)
+        showToast(message, "error")
       }
     }
     finally { setLoading(false) }
   }
 
   const handleEmailRegister = async (e) => {
-    e.preventDefault(); setLoading(true)
+    e.preventDefault(); setLoading(true); setAuthFeedback("")
     try {
       await register(regForm.full_name, regForm.email, regForm.password)
       showToast(`Account created! Please sign in. 🎉`, "success")
@@ -65,6 +69,7 @@ export default function Auth() {
       if (e.response?.status === 409) {
         setAuthMode("login")
         setEmailForm({ email: regForm.email, password: "" })
+        setAuthFeedback("This user is already registered. Please sign in.")
         showToast("This user is already registered. Please sign in.", "info")
       } else {
         showToast(e.response?.data?.detail || "Registration failed.", "error")
@@ -271,9 +276,15 @@ export default function Auth() {
           {tab === 0 && !forgotMode && (
             <div className="space-y-4">
               <div className="flex gap-4 mb-2">
-                <button onClick={() => setAuthMode("login")} className={`text-sm font-semibold ${authMode === "login" ? "text-saffron border-b-2 border-saffron pb-1" : "text-muted"}`}>Sign In</button>
-                <button onClick={() => setAuthMode("register")} className={`text-sm font-semibold ${authMode === "register" ? "text-saffron border-b-2 border-saffron pb-1" : "text-muted"}`}>Register</button>
+                <button onClick={() => { setAuthMode("login"); setAuthFeedback("") }} className={`text-sm font-semibold ${authMode === "login" ? "text-saffron border-b-2 border-saffron pb-1" : "text-muted"}`}>Sign In</button>
+                <button onClick={() => { setAuthMode("register"); setAuthFeedback("") }} className={`text-sm font-semibold ${authMode === "register" ? "text-saffron border-b-2 border-saffron pb-1" : "text-muted"}`}>Register</button>
               </div>
+
+              {authFeedback && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-medium text-red-700">
+                  {authFeedback}
+                </div>
+              )}
 
               {authMode === "login" ? (
                 <form onSubmit={handleEmailLogin} className="space-y-4">
