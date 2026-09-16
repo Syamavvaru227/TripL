@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -13,6 +15,34 @@ import httpx
 router = APIRouter(prefix="/api/places", tags=["places"])
 
 
+def _category_term(value: str) -> str:
+    normalized = value.casefold().strip()
+    return {"beaches": "beach", "parks": "park"}.get(normalized, normalized.rstrip("s"))
+
+
+def _category_for_name(categories: dict[str, Category], name: Optional[str]) -> Optional[Category]:
+    """Find a seeded category while accepting singular/plural source labels."""
+    if not name:
+        return None
+    wanted = _category_term(name)
+    return next(
+        (category for category_name, category in categories.items()
+         if _category_term(category_name) == wanted),
+        None,
+    )
+
+
+def _category_payload(category: Optional[Category], fallback_name: str = "Heritage") -> dict:
+    if category:
+        return {"id": category.id, "name": category.name, "icon": category.icon, "color": category.color}
+    return {"id": None, "name": fallback_name, "icon": "🏛️", "color": "#C2410C"}
+
+
+def _place_key(place: dict) -> str:
+    """Deduplicate sources by their public place name, preferring richer records first."""
+    return str(place.get("name", "")).strip().casefold()
+
+
 @router.get("/nearby")
 async def get_nearby_places(
     city: Optional[str] = Query(None, description="City name"),
@@ -24,10 +54,8 @@ async def get_nearby_places(
 ):
     """Return all tourist places within `radius` km of the given city.
 
-    Priority order:
-    1. Database (seeded data — fast, reliable, rich data)
-    2. Wikipedia GeoSearch (real-time, decent quality)
-    Never use Nominatim (returns neighborhoods, not tourist places).
+    Combine seeded records with live, free sources. A seeded match is useful but
+    must not hide nearby attractions that have not been added to our database.
     """
     if (latitude is None) != (longitude is None):
         raise HTTPException(status_code=422, detail="Send both latitude and longitude for a live-location search.")
@@ -57,20 +85,20 @@ async def get_nearby_places(
     origin_lat, origin_lon = coords
     categories = {item.name: item for item in db.query(Category).all()}
 
-    # 2. Try database first (seeded data has rich info: ratings, fees, hours, descriptions)
+    # 2. Start with database records: they contain the richest curated details.
     db_places = db.query(Place).filter(
         Place.is_active == True,
         Place.city.ilike(f"%{city}%"),
     ).all()
 
+    result = []
     if db_places:
-        result = []
         for place in db_places:
             dist = haversine_km(origin_lat, origin_lon, float(place.latitude), float(place.longitude))
             if dist > radius:
                 continue
             if category:
-                if not place.category or category.casefold() not in place.category.name.casefold():
+                if not place.category or _category_term(category) not in _category_term(place.category.name):
                     continue
             cat = place.category
             result.append({
@@ -91,41 +119,45 @@ async def get_nearby_places(
                 "distance_km": round(dist, 2),
                 "category": {"id": cat.id, "name": cat.name, "icon": cat.icon, "color": cat.color} if cat else None,
             })
-        result.sort(key=lambda x: x["distance_km"])
-        if result:
-            return result
+    # 3. Enrich results with real-time sources in parallel. Overpass is especially
+    # useful for local beaches, parks, and temples that Wikipedia does not list.
+    from app.services.google_places import fetch_google_tourist_places
+    from app.services.osm_overpass import fetch_overpass_places
+    from app.services.osm_places import fetch_real_places
 
-    # 3. Real-time fallback: Wikipedia GeoSearch (the only free API that returns actual tourist places)
-    live_places = []
-    try:
-        import asyncio
-        from app.services.osm_places import fetch_real_places
-        live_places = await asyncio.wait_for(
-            fetch_real_places(city, origin_lat, origin_lon, radius),
-            timeout=25.0,
-        )
-    except Exception:
-        pass
+    source_results = await asyncio.gather(
+        fetch_google_tourist_places(city, origin_lat, origin_lon, radius),
+        asyncio.wait_for(fetch_overpass_places(city, origin_lat, origin_lon, radius), timeout=12.0),
+        asyncio.wait_for(fetch_real_places(city, origin_lat, origin_lon, radius), timeout=25.0),
+        return_exceptions=True,
+    )
 
-    if live_places:
-        result = []
-        for place in live_places:
-            cat_name = place.pop("category_name", None)
-            category_obj = categories.get(cat_name) if cat_name else None
-            if category and (not category_obj or category.casefold() not in category_obj.name.casefold()):
+    seen_names = {_place_key(place) for place in result if _place_key(place)}
+    next_live_id = -1
+    for source in source_results:
+        if isinstance(source, Exception):
+            continue
+        for raw_place in source:
+            # Source results may come from the in-memory Wikipedia cache; do not
+            # mutate those cached dictionaries while adding UI-specific fields.
+            place = dict(raw_place)
+            key = _place_key(place)
+            if not key or key in seen_names:
                 continue
-            place["id"] = -(len(result) + 1)
+            cat_name = place.pop("category_name", None)
+            category_obj = _category_for_name(categories, cat_name)
+            if category and (not category_obj or _category_term(category) not in _category_term(category_obj.name)):
+                continue
+            seen_names.add(key)
+            place["id"] = next_live_id
+            next_live_id -= 1
             place["category_id"] = category_obj.id if category_obj else None
             place.setdefault("image_url", None)
-            place["category"] = (
-                {"id": category_obj.id, "name": category_obj.name, "icon": category_obj.icon, "color": category_obj.color}
-                if category_obj else {"id": None, "name": cat_name or "Heritage", "icon": "🏛️", "color": "#C2410C"}
-            )
+            place["category"] = _category_payload(category_obj, cat_name or "Heritage")
             result.append(place)
-        return result
 
-    # 4. Nothing found
-    return []
+    result.sort(key=lambda place: place["distance_km"])
+    return result
 
 
 @router.get("/wiki-history")

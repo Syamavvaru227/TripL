@@ -93,7 +93,7 @@ export default function Explore() {
       }
     } catch (e) {
       if (!e.name?.includes('AbortError')) {
-        setPlacesError("Could not load places. Is the backend running?")
+        setPlacesError(e.response?.data?.detail || "Could not load places. Please try again.")
       }
     } finally {
       setPlacesLoading(false)
@@ -231,7 +231,7 @@ export default function Explore() {
                 </div>
               </div>
             ) : placesError && filteredPlaces.length === 0 ? (
-              <EmptyState icon="🌐" title="Backend not connected" description={placesError}
+              <EmptyState icon="🌐" title={placesError?.startsWith("City '") ? "Location not found" : "Could not load places"} description={placesError}
                 action={<button onClick={loadPlaces} className="btn-primary text-sm">Retry</button>} />
             ) : filteredPlaces.length === 0 ? (
               <EmptyState icon="🔍" title="No places found" description="Try changing your filters or distance radius." />
@@ -272,7 +272,7 @@ export default function Explore() {
                 </div>
               </div>
             ) : placesError && filteredPlaces.length === 0 ? (
-              <EmptyState icon="🌐" title="Backend not connected" description={placesError}
+              <EmptyState icon="🌐" title={placesError?.startsWith("City '") ? "Location not found" : "Could not load places"} description={placesError}
                 action={<button onClick={loadPlaces} className="btn-primary text-sm">Retry</button>} />
             ) : (
               filteredPlaces.map((p, i) => <div key={p.id} className="mb-3"><PlaceCard place={p} index={i} /></div>)

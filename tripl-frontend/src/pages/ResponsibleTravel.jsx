@@ -15,18 +15,18 @@ const TIPS = [
 
 export default function ResponsibleTravel() {
   return (
-    <div className="min-h-screen bg-ivory pb-20">
-      <motion.div className="bg-gradient-to-br from-emerald to-peacock py-16 px-4 text-white text-center"
+    <div className="min-h-screen bg-ivory">
+      <motion.div className="bg-gradient-to-br from-emerald to-peacock py-10 sm:py-16 px-4 text-white text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="text-6xl mb-4">🌱</div>
-        <h1 className="font-display font-bold text-4xl sm:text-5xl mb-3">Travel Responsibly</h1>
-        <p className="text-white/80 text-lg max-w-xl mx-auto">Explore India in ways that preserve its beauty, culture, and communities for generations to come.</p>
+        <h1 className="font-display font-bold text-3xl sm:text-5xl mb-3">Travel Responsibly</h1>
+        <p className="text-white/80 text-base sm:text-lg max-w-xl mx-auto">Explore India in ways that preserve its beauty, culture, and communities for generations to come.</p>
       </motion.div>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
         <motion.div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12"
           initial="hidden"
           whileInView="show"
@@ -70,7 +70,7 @@ export default function ResponsibleTravel() {
           ))}
         </motion.div>
 
-        <motion.div className="bg-gradient-to-br from-indigo to-peacock rounded-3xl p-8 text-white text-center">
+        <motion.div className="bg-gradient-to-br from-indigo to-peacock rounded-3xl p-5 sm:p-8 text-white text-center">
           <div className="text-4xl mb-4">🌏</div>
           <h3 className="font-display font-bold text-2xl mb-3">India is Yours to Protect</h3>
           <p className="text-white/80 max-w-lg mx-auto leading-relaxed">When you travel responsibly, you become a guardian of India's incredible heritage and natural wonders. Every small action counts.</p>

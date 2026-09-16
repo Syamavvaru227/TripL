@@ -15,7 +15,11 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const isAuthRequest = err.config?.url?.startsWith("/auth/")
+    // Login/register errors belong to the form that submitted them. Redirecting
+    // here reloads that form and hides useful feedback such as a wrong password
+    // or an account that has not been registered yet.
+    if (err.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("tripl_token")
       window.location.href = "/auth"
     }

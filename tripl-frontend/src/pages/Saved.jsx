@@ -27,10 +27,10 @@ export default function Saved() {
           <h1 className="font-display font-bold text-3xl text-indigo">My Saved</h1>
         </motion.div>
         {/* Tabs */}
-        <div className="flex gap-1 bg-sand rounded-2xl p-1.5 w-fit mb-8">
+        <div className="flex gap-1 bg-sand rounded-2xl p-1.5 w-full sm:w-fit mb-8">
           {TABS.map((t, i) => (
             <button key={t} onClick={() => setTab(i)}
-              className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${tab === i ? "bg-white text-saffron shadow-sm" : "text-muted hover:text-charcoal"}`}>
+              className={`flex-1 px-2 sm:px-6 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition-all ${tab === i ? "bg-white text-saffron shadow-sm" : "text-muted hover:text-charcoal"}`}>
               {t} {i === 0 ? `(${savedPlaces.length})` : `(${savedItineraries.length})`}
             </button>
           ))}

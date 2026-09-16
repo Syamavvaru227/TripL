@@ -11,7 +11,7 @@ const FEATURES = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-20 bg-ivory">
+    <section className="py-14 sm:py-20 bg-ivory">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <MandalaDivider text="Why TripL" />
         <motion.div
@@ -21,16 +21,16 @@ export default function FeaturesSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="section-heading text-4xl sm:text-5xl mb-4">
+          <h2 className="section-heading text-3xl sm:text-5xl mb-4">
             Intelligent Travel.<br /><span className="text-gradient">Rooted in India.</span>
           </h2>
-          <p className="text-muted text-lg max-w-2xl mx-auto">From AI-powered planning to cultural storytelling — everything you need to explore India intelligently.</p>
+          <p className="text-muted text-base sm:text-lg max-w-2xl mx-auto">From AI-powered planning to cultural storytelling — everything you need to explore India intelligently.</p>
         </motion.div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {FEATURES.map((f, i) => (
             <motion.div
               key={f.title}
-              className="card p-6 group"
+              className="card p-5 sm:p-6 group"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

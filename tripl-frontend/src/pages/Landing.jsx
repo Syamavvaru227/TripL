@@ -18,7 +18,7 @@ export default function Landing() {
       <CitiesCarousel />
       <MandalaDivider text="Explore India" />
       {/* CTA Banner */}
-      <motion.section className="py-20 bg-gradient-to-br from-indigo via-peacock to-indigo text-white relative overflow-hidden"
+      <motion.section className="py-14 sm:py-20 bg-gradient-to-br from-indigo via-peacock to-indigo text-white relative overflow-hidden"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -33,8 +33,8 @@ export default function Landing() {
         </div>
         <div className="relative max-w-3xl mx-auto text-center px-4">
           <div className="text-5xl mb-4">🕉️</div>
-          <h2 className="font-display font-bold text-4xl sm:text-5xl mb-4">Explore India.<br />Understand India.<br /><span className="text-saffron">Experience India.</span></h2>
-          <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto">Don't just visit. Discover the stories, flavours, and soul behind every destination.</p>
+          <h2 className="font-display font-bold text-3xl sm:text-5xl mb-4">Explore India.<br />Understand India.<br /><span className="text-saffron">Experience India.</span></h2>
+          <p className="text-white/70 text-base sm:text-lg mb-8 max-w-xl mx-auto">Don't just visit. Discover the stories, flavours, and soul behind every destination.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={() => navigate("/explore")} className="btn-primary">Start Exploring</button>
             <button onClick={() => navigate("/plan")} className="btn-secondary border-white/30 text-white hover:bg-white hover:text-indigo">Plan My Journey</button>

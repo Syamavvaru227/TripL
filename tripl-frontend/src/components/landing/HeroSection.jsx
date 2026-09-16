@@ -35,7 +35,7 @@ export default function HeroSection() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-[calc(100svh-8rem)] md:min-h-[100svh] flex flex-col overflow-hidden">
       {/* Cinematic background */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo via-peacock to-charcoal" />
       {/* Geometric Indian pattern overlay */}
@@ -58,37 +58,37 @@ export default function HeroSection() {
       <div className="absolute top-1/3 right-1/4 w-96 h-96 rounded-full bg-saffron/20 blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 left-1/3 w-64 h-64 rounded-full bg-peacock/30 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-20 grid lg:grid-cols-2 gap-10 lg:gap-12 items-center w-full flex-1">
         {/* Left: Text + Search */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white/90 text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white/90 text-xs sm:text-sm font-medium mb-4 sm:mb-6">
             <Sparkles size={14} className="text-saffron" />
             AI-Powered Indian Travel Planning
           </div>
-          <h1 className="font-display font-extrabold text-5xl sm:text-6xl lg:text-7xl text-white leading-tight mb-6">
+          <h1 className="font-display font-extrabold text-3xl sm:text-6xl lg:text-7xl text-white leading-tight mb-4 sm:mb-6">
             One Location In.
             <span className="block" style={{ color: "#E8621A" }}>A Complete Indian</span>
             Journey Out.
           </h1>
-          <p className="text-white/70 text-lg mb-8 leading-relaxed max-w-lg">
+          <p className="text-white/70 text-base sm:text-lg mb-6 sm:mb-8 leading-relaxed max-w-lg">
             Discover hidden gems, compare travel options, and build your perfect journey within 30 km. Powered by AI, rooted in India.
           </p>
           {/* Search box */}
           <div className="relative max-w-lg">
-            <div className="flex items-center gap-3 bg-white rounded-2xl shadow-2xl p-2 pl-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-white rounded-2xl shadow-2xl p-2 sm:pl-4">
               <MapPin size={20} className="text-saffron shrink-0" />
               <input
                 type="text" placeholder="Where do you want to explore?"
                 value={query} onChange={e => { setQuery(e.target.value); setShowSugg(true) }}
                 onFocus={() => setShowSugg(true)}
                 onKeyDown={e => e.key === "Enter" && handleExplore()}
-                className="flex-1 py-2 text-charcoal placeholder:text-muted outline-none text-sm font-medium bg-transparent"
+                className="w-full flex-1 py-2 text-charcoal placeholder:text-muted outline-none text-sm font-medium bg-transparent"
               />
-              <button onClick={() => handleExplore()} className="bg-saffron text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-saffron-dark transition-colors flex items-center gap-1.5 shrink-0">
+              <button onClick={() => handleExplore()} className="w-full sm:w-auto justify-center bg-saffron text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-saffron-dark transition-colors flex items-center gap-1.5 shrink-0">
                 <Search size={16} /> Explore
               </button>
             </div>
@@ -147,21 +147,21 @@ export default function HeroSection() {
       </div>
 
       {/* Bottom stats bar */}
-      <div className="absolute bottom-0 left-0 right-0 glass border-t border-white/10">
+      <div className="relative z-10 glass border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <motion.div
-            className="flex items-center justify-center gap-8 md:gap-16 flex-wrap"
+            className="grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-3 sm:gap-8 md:gap-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.8 }}
           >
             {[["Any","Indian City"], ["AI","Smart Itinerary"], ["Real-Time","Places"], ["Free","To Use"]].map(([n, l], i) => (
-              <motion.div key={l} className="text-center"
+              <motion.div key={l} className="text-center py-1"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.9 + i * 0.1 }}
               >
-                <div className="font-display font-bold text-2xl text-saffron">{n}</div>
+                <div className="font-display font-bold text-xl sm:text-2xl text-saffron">{n}</div>
                 <div className="text-white/50 text-xs">{l}</div>
               </motion.div>
             ))}

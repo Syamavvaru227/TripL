@@ -286,7 +286,7 @@ export default function PlaceDetail() {
                     { label: "Best Time", val: "Morning (8–11 AM)" },
                     { label: "Category", val: place.category?.name || "Tourist Spot" },
                   ].map(i => (
-                    <div key={i.label} className="flex justify-between border-b border-border pb-2 last:border-0 last:pb-0">
+                    <div key={i.label} className="flex flex-col gap-1 sm:flex-row sm:justify-between border-b border-border pb-2 last:border-0 last:pb-0">
                       <span className="text-muted">{i.label}</span>
                       <span className="font-medium text-charcoal">{i.val}</span>
                     </div>

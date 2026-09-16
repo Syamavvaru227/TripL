@@ -40,7 +40,15 @@ export default function Auth() {
       const res = await login(emailForm.email, emailForm.password)
       setToken(res.data.access_token); setUser(res.data.user)
       showToast(`Welcome back, ${res.data.user.full_name}!`, "success"); navigate("/explore")
-    } catch (e) { showToast(e.response?.data?.detail || "Incorrect email or password.", "error") }
+    } catch (e) {
+      if (e.response?.status === 404) {
+        setAuthMode("register")
+        setRegForm(f => ({ ...f, email: emailForm.email }))
+        showToast("User is not registered. Create an account to continue.", "info")
+      } else {
+        showToast(e.response?.data?.detail || "Incorrect email or password.", "error")
+      }
+    }
     finally { setLoading(false) }
   }
 
@@ -52,7 +60,15 @@ export default function Auth() {
       setAuthMode("login")
       setEmailForm({ email: regForm.email, password: "" })
       setRegForm({ full_name: "", email: "", password: "" })
-    } catch (e) { showToast(e.response?.data?.detail || "Registration failed.", "error") }
+    } catch (e) {
+      if (e.response?.status === 409) {
+        setAuthMode("login")
+        setEmailForm({ email: regForm.email, password: "" })
+        showToast("This user is already registered. Please sign in.", "info")
+      } else {
+        showToast(e.response?.data?.detail || "Registration failed.", "error")
+      }
+    }
     finally { setLoading(false) }
   }
 
@@ -95,7 +111,14 @@ export default function Auth() {
       const res = await loginPhone(phoneForm.phone, phoneForm.password)
       setToken(res.data.access_token); setUser(res.data.user)
       showToast(`Welcome back, ${res.data.user.full_name}!`, "success"); navigate("/explore")
-    } catch (e) { showToast(e.response?.data?.detail || "Incorrect password.", "error") }
+    } catch (e) {
+      if (e.response?.status === 404) {
+        setOtpStep(2)
+        showToast("User is not registered. Complete your profile to create an account.", "info")
+      } else {
+        showToast(e.response?.data?.detail || "Incorrect password.", "error")
+      }
+    }
     finally { setOtpLoading(false) }
   }
 
@@ -107,7 +130,22 @@ export default function Auth() {
       resetAll()
       setTab(0); setAuthMode("login")
       setEmailForm({ email: phoneForm.email, password: "" })
-    } catch (e) { showToast(e.response?.data?.detail || "Registration failed.", "error") }
+    } catch (e) {
+      if (e.response?.status === 409) {
+        if (e.response?.data?.detail?.includes("phone")) {
+          setOtpStep(3)
+          setPhoneForm(f => ({ ...f, password: "" }))
+          showToast("This user is already registered. Please sign in.", "info")
+        } else {
+          resetAll()
+          setTab(0); setAuthMode("login")
+          setEmailForm({ email: phoneForm.email, password: "" })
+          showToast("This email is already registered. Please sign in.", "info")
+        }
+      } else {
+        showToast(e.response?.data?.detail || "Registration failed.", "error")
+      }
+    }
     finally { setOtpLoading(false) }
   }
 
