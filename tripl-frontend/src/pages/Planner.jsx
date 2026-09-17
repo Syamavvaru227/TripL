@@ -27,7 +27,7 @@ const INTERESTS = [
   { id: "shopping", emoji: "🛍️", label: "Shopping" }, { id: "family", emoji: "👨‍👩‍👧", label: "Family" },
   { id: "park", emoji: "🌿", label: "Parks" }, { id: "viewpoint", emoji: "🏞️", label: "Viewpoints" },
 ]
-const TRANSPORTS = [{ id: "car", emoji: "🚗", label: "Car" }, { id: "bike", emoji: "🏍️", label: "Bike" }, { id: "bus", emoji: "🚌", label: "Bus" }, { id: "auto", emoji: "🛺", label: "Auto" }, { id: "walking", emoji: "🚶", label: "Walking" }]
+const TRANSPORTS = [{ id: "car", emoji: "🚗", label: "Car" }, { id: "bike", emoji: "🏍️", label: "Bike" }, { id: "bus", emoji: "🚌", label: "Bus" }, { id: "auto", emoji: "🛺", label: "Auto" }, { id: "walk", emoji: "🚶", label: "Walking" }]
 const PLACE_TYPES = [
   { id: "top_rated", emoji: "⭐", label: "Top Rated", desc: "Highest-rated places in the city" },
   { id: "must_visit", emoji: "🎯", label: "Must Visit", desc: "Iconic spots everyone recommends" },

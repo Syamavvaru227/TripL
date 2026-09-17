@@ -209,19 +209,19 @@ export default function Itinerary() {
             </div>
           </div>
           <div className="border-t border-border pt-4">
-            <p className="text-muted text-sm mb-3">Book your complete trip ride:</p>
+            <p className="text-muted text-sm mb-3">Open a ride app to check its live fare for this trip:</p>
             <div className="flex flex-col sm:flex-row gap-3">
               <a href={`https://m.uber.com/go/search-pickup?pickup=${encodeURIComponent(trail.city || "")}&dropoff=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-                🚗 Book Uber — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 14)}
+                🚗 Check Uber fare
               </a>
               <a href={`https://book.olacabs.com/?pickup=${encodeURIComponent(trail.city || "")}&drop=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-                🛺 Book Ola — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 12)}
+                🛺 Check Ola fare
               </a>
               <a href={`https://rapido.bike/ride?pickup=${encodeURIComponent(trail.city || "")}&dropoff=${encodeURIComponent(trail.stops?.[trail.stops.length - 1]?.place?.name || "")}`} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-yellow-400 text-black px-4 py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-                🏍️ Book Rapido — ₹{Math.round((trail.stops?.reduce((sum, s) => sum + (s.distance_from_prev_km || 0), 0) || 0) * 8)}
+                🏍️ Check Rapido fare
               </a>
             </div>
           </div>

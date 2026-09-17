@@ -614,44 +614,9 @@ async def fetch_real_places(city: str, latitude: float, longitude: float, radius
                     seen_names.add(k)
                     all_places.append(p)
 
-            # Items without coords → assign approximate positions
-            import hashlib as _hl
-            for item in text_items:
-                name = item.get("title", "")
-                if not name or name.casefold() in seen_names:
-                    continue
-                if not _is_genuine_tourist_place(item):
-                    continue
-                lat = float(item.get("lat", 0))
-                lon = float(item.get("lon", 0))
-                if lat != 0 and lon != 0:
-                    continue  # already handled above
-                h = int(_hl.md5(name.encode()).hexdigest()[:8], 16)
-                lat = latitude + ((h % 100) - 50) * 0.0015
-                lon = longitude + (((h >> 8) % 100) - 50) * 0.0015
-                dist = haversine_km(latitude, longitude, lat, lon)
-                if dist > radius_km:
-                    continue
-                seen_names.add(name.casefold())
-                description = str(item.get("description", ""))
-                categories_text = " ".join(str(c.get("title", "")) for c in item.get("categories", []))
-                cat = _category_from_name(name, description, categories_text)
-                timings = _category_timings(cat)
-                all_places.append({
-                    "name": name, "latitude": lat, "longitude": lon,
-                    "category_name": cat, "rating": 4.0,
-                    "avg_visit_duration": _category_duration(cat),
-                    "entry_fee": 0.0,
-                    "opening_time": timings["opening_time"],
-                    "closing_time": timings["closing_evening"],
-                    "description": description or f"A tourist place near {city}.",
-                    "address": city, "city": city, "distance_km": round(dist, 2),
-                    "image_url": item.get("image_url"),
-                    "crowded_peak": timings["crowded_peak"],
-                    "crowded_level": timings["crowded_level"],
-                    "best_time": timings["best_time"],
-                    "visit_tips": timings["tips"],
-                })
+            # Do not invent coordinates for text-only Wikipedia results. Those
+            # synthetic pins made route distances and itinerary costs inaccurate.
+            # Results without verified GPS coordinates are deliberately omitted.
 
     all_places.sort(key=lambda p: p["distance_km"])
     result = all_places[:50]
